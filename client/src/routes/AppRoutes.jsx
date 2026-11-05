@@ -4,6 +4,10 @@ import LandingPage from '../pages/LandingPage.jsx';
 import LoginPage from '../pages/LoginPage.jsx';
 import RegisterPage from '../pages/RegisterPage.jsx';
 import FarmerDashboard from '../pages/FarmerDashboard.jsx';
+import MyFarmsPage from '../pages/farms/MyFarmsPage.jsx';
+import AddFarmPage from '../pages/farms/AddFarmPage.jsx';
+import FarmDetailsPage from '../pages/farms/FarmDetailsPage.jsx';
+import EditFarmPage from '../pages/farms/EditFarmPage.jsx';
 import NotFoundPage from '../pages/NotFoundPage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import PublicRoute from './PublicRoute.jsx';
@@ -32,7 +36,7 @@ export const AppRoutes = () => {
         }
       />
 
-      {/* Authenticated/Farmer Dashboard Shell (Protected with JWT) */}
+      {/* Authenticated Dashboard Shell (Protected with JWT) */}
       <Route
         path="/dashboard"
         element={
@@ -42,6 +46,11 @@ export const AppRoutes = () => {
         }
       >
         <Route index element={<FarmerDashboard />} />
+        {/* Farm Management Routes */}
+        <Route path="farms" element={<MyFarmsPage />} />
+        <Route path="farms/new" element={<AddFarmPage />} />
+        <Route path="farms/:id" element={<FarmDetailsPage />} />
+        <Route path="farms/:id/edit" element={<EditFarmPage />} />
       </Route>
 
       {/* Catch-all 404 Route */}

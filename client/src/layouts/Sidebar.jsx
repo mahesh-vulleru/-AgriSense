@@ -14,6 +14,7 @@ import {
   Database,
   ExternalLink,
   LogOut,
+  Tractor,
 } from 'lucide-react';
 import { useHealth } from '../hooks/useHealth.js';
 import { useAuth } from '../hooks/useAuth.js';
@@ -21,6 +22,7 @@ import Badge from '../components/common/Badge.jsx';
 
 const navItems = [
   { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+  { name: 'My Farms', path: '/dashboard/farms', icon: Tractor, badge: 'Phase 4' },
   { name: 'Field Telemetry', path: '/dashboard#fields', icon: Sprout, badge: 'Live' },
   { name: 'Soil Health', path: '/dashboard#soil', icon: Activity },
   { name: 'Smart Irrigation', path: '/dashboard#irrigation', icon: Droplets },
@@ -102,8 +104,13 @@ export const Sidebar = ({ isOpen, onClose }) => {
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive =
-              location.pathname === item.path ||
-              (item.path !== '/dashboard' && location.hash === item.path.replace('/dashboard', ''));
+              item.path === '/dashboard'
+                ? location.pathname === '/dashboard' && !location.hash
+                : item.path === '/dashboard/farms'
+                ? location.pathname.startsWith('/dashboard/farms')
+                : location.pathname === item.path ||
+                  (item.path !== '/dashboard' &&
+                    location.hash === item.path.replace('/dashboard', ''));
 
             return (
               <Link

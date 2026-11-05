@@ -77,6 +77,15 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+// Virtual for fullName
+userSchema.virtual('fullName')
+  .get(function () {
+    return this.name;
+  })
+  .set(function (val) {
+    this.name = val;
+  });
+
 // Method to verify password
 userSchema.methods.comparePassword = async function (candidatePassword) {
   if (!this.passwordHash) {
@@ -90,6 +99,7 @@ userSchema.methods.toSafeUser = function () {
   return {
     id: this._id,
     name: this.name,
+    fullName: this.name,
     email: this.email,
     phone: this.phone || '',
     location: this.location || '',

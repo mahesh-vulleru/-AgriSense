@@ -1,0 +1,88 @@
+# ==========================================
+# AgriSense - Root Git Ignore Configuration
+# Supports: Node.js, Express, React, MongoDB
+# ==========================================
+
+# Dependency directories
+node_modules/
+jspm_packages/
+web_modules/
+
+# Environment files and credentials
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+!.env.example
+
+# Production build outputs
+/build
+/dist
+/out
+client/build/
+client/dist/
+server/dist/
+.next/
+
+# Logs and debugging
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# MongoDB and Local Database files
+data/
+db/
+*.dump
+dump/
+mongo-volume/
+*.sqlite
+*.sqlite3
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Testing & Coverage
+coverage/
+*.lcov
+.nyc_output/
+.jest/
+
+# Cache directories
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+.turbo/
+
+# Editor and IDE configurations
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Operating System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/

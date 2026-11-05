@@ -1,1 +1,12 @@
 /* AgriSense Application Styles */
+
+/* Ensure smooth transitions for layout elements */
+* {
+  box-sizing: border-box;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

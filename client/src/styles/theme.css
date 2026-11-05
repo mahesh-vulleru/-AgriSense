@@ -10,11 +10,14 @@
  */
 
 :root {
-  --color-forest: #145A32;
+  --color-forest: #145a32;
+  --color-forest-dark: #0e3d22;
   --color-primary-green: #166534;
-  --color-leaf: #22C55E;
-  --color-bg: #F7F9F5;
-  --color-card: #FFFFFF;
-  --color-text: #17251B;
+  --color-leaf: #22c55e;
+  --color-leaf-light: #dcfce7;
+  --color-bg: #f7f9f5;
+  --color-card: #ffffff;
+  --color-text: #17251b;
+  --color-muted: #64748b;
+  --color-border: #e2e8f0;
 }
-

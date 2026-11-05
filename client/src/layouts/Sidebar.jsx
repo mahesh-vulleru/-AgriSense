@@ -15,22 +15,15 @@ import {
   ExternalLink,
   LogOut,
   Tractor,
+  Layers,
+  Bell,
+  MessageSquare,
+  Users,
+  User,
 } from 'lucide-react';
 import { useHealth } from '../hooks/useHealth.js';
 import { useAuth } from '../hooks/useAuth.js';
 import Badge from '../components/common/Badge.jsx';
-
-const navItems = [
-  { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-  { name: 'My Farms', path: '/dashboard/farms', icon: Tractor, badge: 'Phase 4' },
-  { name: 'Field Telemetry', path: '/dashboard#fields', icon: Sprout, badge: 'Live' },
-  { name: 'Soil Health', path: '/dashboard#soil', icon: Activity },
-  { name: 'Smart Irrigation', path: '/dashboard#irrigation', icon: Droplets },
-  { name: 'Weather Advisory', path: '/dashboard#weather', icon: CloudSun },
-  { name: 'AI Disease Scan', path: '/dashboard#ai', icon: ScanEye, badge: 'Module' },
-  { name: 'Analytics', path: '/dashboard#analytics', icon: BarChart3 },
-  { name: 'System Settings', path: '/dashboard#settings', icon: Settings },
-];
 
 export const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
@@ -51,6 +44,58 @@ export const Sidebar = ({ isOpen, onClose }) => {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
+  const role = user?.role || 'farmer';
+
+  // Navigation Items customized per user role
+  const farmerNavItems = [
+    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'My Farms', path: '/dashboard/farms', icon: Tractor, badge: 'Live' },
+    { name: 'Crops', path: '/dashboard/crops', icon: Sprout },
+    { name: 'Crop Monitoring', path: '/dashboard/monitoring', icon: Activity },
+    { name: 'Soil Analysis', path: '/dashboard/soil-analysis', icon: Layers },
+    { name: 'Smart Irrigation', path: '/dashboard/irrigation', icon: Droplets },
+    { name: 'Weather Advisory', path: '/dashboard/weather', icon: CloudSun },
+    { name: 'AI Disease Scan', path: '/dashboard/disease-detection', icon: ScanEye },
+    { name: 'Reports', path: '/dashboard/reports', icon: BarChart3 },
+    { name: 'Notifications', path: '/dashboard/notifications', icon: Bell },
+    { name: 'Consultation', path: '/dashboard/consultation', icon: MessageSquare },
+    { name: 'Settings', path: '/dashboard/settings', icon: Settings },
+  ];
+
+  const expertNavItems = [
+    { name: 'Expert Dashboard', path: '/expert/dashboard', icon: LayoutDashboard },
+    { name: 'Consultation Queue', path: '/expert/consultations', icon: MessageSquare, badge: 'Active' },
+    { name: 'Expert Profile', path: '/expert/profile', icon: User },
+  ];
+
+  const adminNavItems = [
+    { name: 'Admin Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'User Management', path: '/admin/users', icon: Users },
+    { name: 'Farmers Directory', path: '/admin/farmers', icon: Tractor },
+    { name: 'Experts Directory', path: '/admin/experts', icon: Users },
+    { name: 'All Farms', path: '/admin/farms', icon: Tractor, badge: 'Live' },
+    { name: 'Crop Oversight', path: '/admin/crops', icon: Sprout },
+    { name: 'Disease Scans', path: '/admin/disease-detections', icon: ScanEye },
+    { name: 'Consultations', path: '/admin/consultations', icon: MessageSquare },
+    { name: 'Notifications', path: '/admin/notifications', icon: Bell },
+    { name: 'Reports', path: '/admin/reports', icon: BarChart3 },
+    { name: 'System Settings', path: '/admin/settings', icon: Settings },
+  ];
+
+  const activeNavItems =
+    role === 'admin'
+      ? adminNavItems
+      : role === 'expert'
+      ? expertNavItems
+      : farmerNavItems;
+
+  const brandHomeLink =
+    role === 'admin'
+      ? '/admin/dashboard'
+      : role === 'expert'
+      ? '/expert/dashboard'
+      : '/dashboard';
+
   return (
     <>
       {/* Mobile Backdrop */}
@@ -70,16 +115,32 @@ export const Sidebar = ({ isOpen, onClose }) => {
       >
         {/* Brand Header */}
         <div className="flex h-16 items-center justify-between px-6 border-b border-slate-100">
-          <Link to="/dashboard" className="flex items-center gap-2.5">
+          <Link to={brandHomeLink} className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#166534] to-[#145A32] text-white shadow-xs">
               <Sprout className="h-5 w-5 text-[#22C55E]" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-black tracking-tight text-[#145A32] leading-none">
-                Agri<span className="text-[#22C55E]">Sense</span>
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-lg font-black tracking-tight text-[#145A32] leading-none">
+                  Agri<span className="text-[#22C55E]">Sense</span>
+                </span>
+                {role === 'admin' && (
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-100 text-rose-700">
+                    ADMIN
+                  </span>
+                )}
+                {role === 'expert' && (
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-100 text-blue-700">
+                    EXPERT
+                  </span>
+                )}
+              </div>
               <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase mt-0.5">
-                Precision IoT
+                {role === 'admin'
+                  ? 'Administration Suite'
+                  : role === 'expert'
+                  ? 'Agronomy Specialist'
+                  : 'Precision Agriculture'}
               </span>
             </div>
           </Link>
@@ -97,20 +158,22 @@ export const Sidebar = ({ isOpen, onClose }) => {
 
         {/* Navigation Items */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
-          <div className="px-3 pb-2 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
-            Platform Menu
+          <div className="flex items-center justify-between px-3 pb-2 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
+            <span>Navigation Menu</span>
+            <span className="text-[10px] capitalize text-[#166534] font-bold">
+              {role}
+            </span>
           </div>
 
-          {navItems.map((item) => {
+          {activeNavItems.map((item) => {
             const Icon = item.icon;
             const isActive =
-              item.path === '/dashboard'
-                ? location.pathname === '/dashboard' && !location.hash
-                : item.path === '/dashboard/farms'
-                ? location.pathname.startsWith('/dashboard/farms')
-                : location.pathname === item.path ||
-                  (item.path !== '/dashboard' &&
-                    location.hash === item.path.replace('/dashboard', ''));
+              location.pathname === item.path ||
+              (item.path === '/dashboard/farms' && location.pathname.startsWith('/dashboard/farms')) ||
+              (item.path !== '/dashboard' &&
+                item.path !== '/expert/dashboard' &&
+                item.path !== '/admin/dashboard' &&
+                location.pathname.startsWith(item.path));
 
             return (
               <Link

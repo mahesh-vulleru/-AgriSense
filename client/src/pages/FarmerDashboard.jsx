@@ -18,9 +18,11 @@ import QuickActions from '../components/dashboard/QuickActions.jsx';
 import Button from '../components/common/Button.jsx';
 import Badge from '../components/common/Badge.jsx';
 import { useHealth } from '../hooks/useHealth.js';
+import { useAuth } from '../hooks/useAuth.js';
 
 export const FarmerDashboard = () => {
   const { checkNow, status } = useHealth();
+  const { user } = useAuth();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleManualRefresh = async () => {
@@ -36,16 +38,16 @@ export const FarmerDashboard = () => {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xl sm:text-2xl font-extrabold text-[#17251B] tracking-tight">
-              Welcome back, Mahesh 👋
+              Welcome back, {user?.name || 'Farmer'} 👋
             </span>
             <Badge size="sm" variant="forest" dot>
-              Active Season
+              {user?.role ? user.role.toUpperCase() : 'ACTIVE SEASON'}
             </Badge>
           </div>
           <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
             <div className="flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-[#166534]" />
-              <span>Green Valley Farm &bull; 28.5 Total Acres</span>
+              <span>{user?.location || 'Green Valley Farm • 28.5 Total Acres'}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-slate-400" />

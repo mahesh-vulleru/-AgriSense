@@ -8,13 +8,17 @@ import {
   Cpu,
   ArrowRight,
   Server,
+  LogIn,
+  UserPlus,
 } from 'lucide-react';
 import Button from '../components/common/Button.jsx';
 import Badge from '../components/common/Badge.jsx';
 import { useHealth } from '../hooks/useHealth.js';
+import { useAuth } from '../hooks/useAuth.js';
 
 export const LandingPage = () => {
   const { status } = useHealth();
+  const { user, isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen bg-[#F7F9F5] text-[#17251B]">
@@ -30,8 +34,8 @@ export const LandingPage = () => {
             </span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 mr-2">
               <span className="text-xs text-slate-500">API Health:</span>
               <Badge
                 size="sm"
@@ -42,11 +46,31 @@ export const LandingPage = () => {
               </Badge>
             </div>
 
-            <Link to="/dashboard">
-              <Button variant="primary" size="sm" icon={ArrowRight}>
-                Enter Dashboard
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-semibold text-slate-700 hidden md:inline">
+                  Hi, {user?.name}
+                </span>
+                <Link to="/dashboard">
+                  <Button variant="primary" size="sm" icon={ArrowRight}>
+                    Enter Dashboard
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link to="/login">
+                  <Button variant="outline" size="sm" icon={LogIn}>
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/register">
+                  <Button variant="primary" size="sm" icon={UserPlus}>
+                    Register
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -57,7 +81,7 @@ export const LandingPage = () => {
           <div className="mx-auto max-w-3xl text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-[#DCFCE7] px-3.5 py-1 text-xs font-semibold text-[#145A32] mb-6">
               <Sprout className="h-4 w-4 text-[#166534]" />
-              <span>Full-Stack Foundation Initialized & Connected</span>
+              <span>Full-Stack Precision Agriculture Cloud</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#17251B] leading-tight">
@@ -69,11 +93,26 @@ export const LandingPage = () => {
             </p>
 
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-              <Link to="/dashboard">
-                <Button variant="primary" size="lg" icon={ArrowRight}>
-                  Launch Farmer Dashboard
-                </Button>
-              </Link>
+              {isAuthenticated ? (
+                <Link to="/dashboard">
+                  <Button variant="primary" size="lg" icon={ArrowRight}>
+                    Launch Farmer Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link to="/register">
+                    <Button variant="primary" size="lg" icon={ArrowRight}>
+                      Create Farmer Account
+                    </Button>
+                  </Link>
+                  <Link to="/login">
+                    <Button variant="outline" size="lg" icon={LogIn}>
+                      Sign In to Platform
+                    </Button>
+                  </Link>
+                </>
+              )}
               <a
                 href="http://localhost:5000/api/health"
                 target="_blank"
@@ -89,9 +128,9 @@ export const LandingPage = () => {
             <div className="mt-12 inline-flex flex-wrap items-center justify-center gap-3 p-2 rounded-xl bg-white border border-slate-200/80 shadow-xs text-xs text-slate-600">
               <span className="font-semibold text-slate-900 px-2">Stack Foundation:</span>
               <span className="px-2.5 py-1 rounded-md bg-slate-100 font-medium text-slate-700">React 19 &bull; Vite</span>
-              <span className="px-2.5 py-1 rounded-md bg-slate-100 font-medium text-slate-700">Tailwind CSS</span>
+              <span className="px-2.5 py-1 rounded-md bg-slate-100 font-medium text-slate-700">JWT &amp; bcrypt Auth</span>
               <span className="px-2.5 py-1 rounded-md bg-slate-100 font-medium text-slate-700">Node.js Express</span>
-              <span className="px-2.5 py-1 rounded-md bg-[#DCFCE7] font-semibold text-[#145A32]">MongoDB (agrisense)</span>
+              <span className="px-2.5 py-1 rounded-md bg-[#DCFCE7] font-semibold text-[#145A32]">MongoDB (Atlas)</span>
             </div>
           </div>
         </div>
@@ -184,7 +223,7 @@ export const LandingPage = () => {
             <span className="text-xs text-slate-400">&bull; Intelligent Agriculture Platform</span>
           </div>
           <p className="text-xs text-slate-500">
-            &copy; {new Date().getFullYear()} AgriSense. Foundation setup completed.
+            &copy; {new Date().getFullYear()} AgriSense. Authentication &amp; RBAC module operational.
           </p>
         </div>
       </footer>

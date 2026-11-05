@@ -1,9 +1,37 @@
-import { Menu, Bell, Search } from 'lucide-react';
+import { Menu, Bell, Search, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useHealth } from '../hooks/useHealth.js';
+import { useAuth } from '../hooks/useAuth.js';
 import Badge from '../components/common/Badge.jsx';
 
 export const TopNavbar = ({ onOpenSidebar }) => {
   const { status, checkNow, lastChecked } = useHealth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
+
+  const getInitials = (name) => {
+    if (!name) return 'AG';
+    const parts = name.trim().split(' ');
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
+  const formatRole = (role) => {
+    switch (role) {
+      case 'admin':
+        return 'Administrator';
+      case 'expert':
+        return 'Agricultural Expert';
+      case 'farmer':
+      default:
+        return 'Farmer';
+    }
+  };
 
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200/80 bg-white/95 px-4 backdrop-blur-md sm:px-6">
@@ -22,7 +50,9 @@ export const TopNavbar = ({ onOpenSidebar }) => {
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <span>Farms</span>
             <span>/</span>
-            <span className="font-medium text-[#166534]">Green Valley Sector A-B</span>
+            <span className="font-medium text-[#166534]">
+              {user?.location || 'Green Valley Sector A-B'}
+            </span>
           </div>
           <h1 className="text-base font-bold text-[#17251B] leading-tight">
             Smart Agriculture Dashboard
@@ -42,12 +72,14 @@ export const TopNavbar = ({ onOpenSidebar }) => {
         </div>
       </div>
 
-      {/* Right: Backend Status Pill, Notifications, User Profile */}
+      {/* Right: Backend Status Pill, Notifications, User Profile & Sign Out */}
       <div className="flex items-center gap-3">
         {/* Backend Status Live Pill */}
         <div
           onClick={checkNow}
-          title={`Click to recheck health. Last checked: ${lastChecked ? lastChecked.toLocaleTimeString() : 'never'}`}
+          title={`Click to recheck health. Last checked: ${
+            lastChecked ? lastChecked.toLocaleTimeString() : 'never'
+          }`}
           className="flex items-center gap-2 cursor-pointer rounded-full bg-[#F7F9F5] border border-slate-200/80 px-3 py-1 hover:border-slate-300 transition-colors"
         >
           <span className="text-[11px] font-medium text-slate-600 hidden sm:inline">
@@ -85,14 +117,33 @@ export const TopNavbar = ({ onOpenSidebar }) => {
 
         {/* User Profile */}
         <div className="flex items-center gap-2.5">
-          <div className="h-9 w-9 rounded-full bg-[#166534] text-white flex items-center justify-center font-semibold text-xs ring-2 ring-[#DCFCE7] shadow-xs">
-            MV
+          <div
+            title={user?.email || 'User Account'}
+            className="h-9 w-9 rounded-full bg-[#166534] text-white flex items-center justify-center font-bold text-xs ring-2 ring-[#DCFCE7] shadow-xs cursor-default"
+          >
+            {getInitials(user?.name)}
           </div>
           <div className="hidden md:block text-left">
-            <p className="text-xs font-semibold text-[#17251B] leading-none">Mahesh V.</p>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5">Farm Manager</p>
+            <p className="text-xs font-semibold text-[#17251B] leading-none">
+              {user?.name || 'Authorized User'}
+            </p>
+            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+              {formatRole(user?.role)}
+            </p>
           </div>
         </div>
+
+        {/* Logout Button */}
+        <button
+          type="button"
+          onClick={handleLogout}
+          title="Sign Out"
+          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition-colors cursor-pointer border border-transparent hover:border-rose-200"
+          aria-label="Sign out"
+        >
+          <LogOut className="h-4 w-4" />
+          <span className="hidden sm:inline">Sign Out</span>
+        </button>
       </div>
     </header>
   );

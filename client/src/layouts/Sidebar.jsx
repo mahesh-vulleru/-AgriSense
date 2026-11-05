@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Sprout,
@@ -13,8 +13,10 @@ import {
   RefreshCw,
   Database,
   ExternalLink,
+  LogOut,
 } from 'lucide-react';
 import { useHealth } from '../hooks/useHealth.js';
+import { useAuth } from '../hooks/useAuth.js';
 import Badge from '../components/common/Badge.jsx';
 
 const navItems = [
@@ -30,7 +32,22 @@ const navItems = [
 
 export const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { status, latency, healthData, checkNow } = useHealth();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    if (onClose) onClose();
+    navigate('/login', { replace: true });
+  };
+
+  const getInitials = (name) => {
+    if (!name) return 'AG';
+    const parts = name.trim().split(' ');
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
 
   return (
     <>
@@ -50,49 +67,53 @@ export const Sidebar = ({ isOpen, onClose }) => {
         }`}
       >
         {/* Brand Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#166534] to-[#145A32] flex items-center justify-center text-white shadow-sm shadow-[#166534]/20">
-              <Sprout className="w-6 h-6 text-[#22C55E]" />
+        <div className="flex h-16 items-center justify-between px-6 border-b border-slate-100">
+          <Link to="/dashboard" className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#166534] to-[#145A32] text-white shadow-xs">
+              <Sprout className="h-5 w-5 text-[#22C55E]" />
             </div>
-            <div>
-              <span className="text-xl font-bold tracking-tight text-[#145A32]">
+            <div className="flex flex-col">
+              <span className="text-lg font-black tracking-tight text-[#145A32] leading-none">
                 Agri<span className="text-[#22C55E]">Sense</span>
               </span>
-              <p className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">
-                Intelligent Farming
-              </p>
+              <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase mt-0.5">
+                Precision IoT
+              </span>
             </div>
           </Link>
+
+          {/* Mobile close button */}
           <button
             type="button"
             onClick={onClose}
-            className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 md:hidden"
+            aria-label="Close sidebar"
           >
-            <X className="w-5 h-5" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Navigation Links */}
-        <div className="flex-1 overflow-y-auto px-4 py-5 space-y-1">
+        {/* Navigation Items */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
           <div className="px-3 pb-2 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
-            Farm Management
+            Platform Menu
           </div>
+
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path || (item.path.startsWith('/dashboard') && location.pathname === '/dashboard');
+            const isActive =
+              location.pathname === item.path ||
+              (item.path !== '/dashboard' && location.hash === item.path.replace('/dashboard', ''));
 
             return (
               <Link
                 key={item.name}
                 to={item.path}
-                onClick={() => {
-                  if (window.innerWidth < 768 && onClose) onClose();
-                }}
-                className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                onClick={onClose}
+                className={`group flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
                   isActive
-                    ? 'bg-[#166534] text-white shadow-xs'
-                    : 'text-slate-700 hover:bg-[#F7F9F5] hover:text-[#166534]'
+                    ? 'bg-[#166534] text-white shadow-xs font-bold'
+                    : 'text-slate-600 hover:bg-[#F7F9F5] hover:text-[#166534]'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -107,7 +128,11 @@ export const Sidebar = ({ isOpen, onClose }) => {
                   <Badge
                     size="sm"
                     variant={isActive ? 'forest' : 'neutral'}
-                    className={isActive ? '!bg-white/20 !text-white !border-white/30 text-[10px]' : 'text-[10px]'}
+                    className={
+                      isActive
+                        ? '!bg-white/20 !text-white !border-white/30 text-[10px]'
+                        : 'text-[10px]'
+                    }
                   >
                     {item.badge}
                   </Badge>
@@ -117,8 +142,26 @@ export const Sidebar = ({ isOpen, onClose }) => {
           })}
 
           <div className="pt-4 px-3 pb-2 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
-            Quick Links
+            Account &amp; Links
           </div>
+
+          {/* User Card in Sidebar */}
+          {user && (
+            <div className="mx-1 mb-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-[#166534] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                {getInitials(user.name)}
+              </div>
+              <div className="overflow-hidden flex-1">
+                <p className="text-xs font-semibold text-[#17251B] truncate">
+                  {user.name}
+                </p>
+                <p className="text-[10px] text-slate-500 capitalize truncate">
+                  {user.role} &bull; {user.email}
+                </p>
+              </div>
+            </div>
+          )}
+
           <Link
             to="/"
             className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-[#F7F9F5] hover:text-[#166534]"
@@ -126,6 +169,16 @@ export const Sidebar = ({ isOpen, onClose }) => {
             <ExternalLink className="w-4 h-4 text-slate-400" />
             <span>Landing Page</span>
           </Link>
+
+          {/* User Sign Out action */}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer text-left"
+          >
+            <LogOut className="w-4 h-4 text-rose-500" />
+            <span>Sign Out</span>
+          </button>
         </div>
 
         {/* Live Backend Connection Card */}

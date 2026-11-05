@@ -1,0 +1,20 @@
+/**
+ * AgriSense Theme & Color Token Reference
+ * 
+ * Forest Green:  #145A32 (Brand primary deep)
+ * Primary Green: #166534 (Brand interactive primary)
+ * Leaf Green:    #22C55E (Accent / status success)
+ * Background:    #F7F9F5 (Clean agricultural canvas)
+ * Cards:         #FFFFFF (Card surfaces)
+ * Text:          #17251B (High-contrast charcoal green)
+ */
+
+:root {
+  --color-forest: #145A32;
+  --color-primary-green: #166534;
+  --color-leaf: #22C55E;
+  --color-bg: #F7F9F5;
+  --color-card: #FFFFFF;
+  --color-text: #17251B;
+}
+

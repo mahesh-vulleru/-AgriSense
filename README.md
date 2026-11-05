@@ -163,9 +163,8 @@ REACT_APP_API_BASE_URL=http://localhost:5000/api
 ## 🗺️ Development Roadmap
 
 - [x] **Step 1:** Initialize repository structure, setup documentation, and configure Git environment.
-- [ ] **Step 2:** Scaffold Express backend, configure database connection, and setup basic API routing.
-- [ ] **Step 3:** Scaffold React frontend, configure layout, theme, and navigation.
-- [ ] **Step 4:** Implement user authentication (JWT) and role-based authorization.
+- [x] **Step 2:** Full-stack foundation setup (Express backend, MongoDB connection, React 19 frontend shell, and live health verification).
+- [ ] **Step 3:** Authentication & User Management (JWT & Role-based Access).
 - [ ] **Step 5:** Build IoT sensor data ingestion pipelines and telemetry endpoints.
 - [ ] **Step 6:** Design and implement the sensor analytics dashboard and visual charts.
 - [ ] **Step 7:** Develop intelligent alerts, thresholds, and automated notifications.

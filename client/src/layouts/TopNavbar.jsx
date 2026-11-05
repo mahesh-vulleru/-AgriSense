@@ -1,5 +1,5 @@
 import { Menu, Bell, Search, LogOut } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useHealth } from '../hooks/useHealth.js';
 import { useAuth } from '../hooks/useAuth.js';
 import Badge from '../components/common/Badge.jsx';
@@ -48,7 +48,12 @@ export const TopNavbar = ({ onOpenSidebar }) => {
 
         <div className="hidden sm:block">
           <div className="flex items-center gap-2 text-xs text-slate-500">
-            <span>Farms</span>
+            <Link
+              to="/dashboard/farms"
+              className="hover:text-[#166534] transition-colors font-medium cursor-pointer"
+            >
+              Farms
+            </Link>
             <span>/</span>
             <span className="font-medium text-[#166534]">
               {user?.location || 'Green Valley Sector A-B'}

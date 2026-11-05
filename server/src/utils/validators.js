@@ -12,7 +12,8 @@ const PHONE_REGEX = /^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]{6,15}$/;
  */
 export const validateRegistrationInput = (data = {}) => {
   const errors = {};
-  const { name, email, password, phone, role } = data;
+  const name = data.fullName || data.name;
+  const { email, password, confirmPassword, phone, role } = data;
 
   // Name validation
   if (!name || typeof name !== 'string' || name.trim().length === 0) {
@@ -37,6 +38,11 @@ export const validateRegistrationInput = (data = {}) => {
     errors.password = 'Password must be at least 8 characters long';
   } else if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
     errors.password = 'Password must contain at least one letter and one number';
+  }
+
+  // Confirm password validation (if provided)
+  if (confirmPassword !== undefined && confirmPassword !== password) {
+    errors.confirmPassword = 'Passwords do not match';
   }
 
   // Phone validation (optional field, but if provided, must look valid)

@@ -12,7 +12,8 @@ import {
  */
 export const register = async (req, res, next) => {
   try {
-    const { name, email, password, phone, location, role } = req.body;
+    const { email, password, phone, location, role } = req.body;
+    const name = (req.body.fullName || req.body.name || '').trim();
 
     // Validate request inputs
     const { isValid, errors } = validateRegistrationInput(req.body);

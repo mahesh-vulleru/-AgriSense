@@ -2,8 +2,8 @@ import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { Sprout } from 'lucide-react';
 
-export const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+export const ProtectedRoute = ({ children, allowedRoles }) => {
+  const { isAuthenticated, loading, user } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -46,8 +46,22 @@ export const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // Role-based authorization guard
+  if (allowedRoles && allowedRoles.length > 0) {
+    const userRole = user?.role || 'farmer';
+    if (!allowedRoles.includes(userRole)) {
+      // Divert to the role's appropriate home portal
+      if (userRole === 'admin') {
+        return <Navigate to="/admin/dashboard" replace />;
+      }
+      if (userRole === 'expert') {
+        return <Navigate to="/expert/dashboard" replace />;
+      }
+      return <Navigate to="/dashboard" replace />;
+    }
+  }
+
   return children ? children : <Outlet />;
 };
 
 export default ProtectedRoute;
-

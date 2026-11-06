@@ -94,6 +94,7 @@ export const getFarmerDashboardStats = async (req, res, next) => {
           soilBreakdown,
           irrigationBreakdown,
         },
+        farms,
         recentFarms: farms.slice(0, 5),
         sensorStatus: {
           connected: false,

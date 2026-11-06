@@ -8,14 +8,11 @@ import {
   RefreshCw,
   Calendar,
   MapPin,
-  Tractor,
   Layers,
-  ArrowRight,
   Plus,
   WifiOff,
   AlertTriangle,
   Sprout,
-  CheckCircle2,
 } from 'lucide-react';
 import BackendStatusBanner from '../components/dashboard/BackendStatusBanner.jsx';
 import MetricCard from '../components/dashboard/MetricCard.jsx';
@@ -25,6 +22,7 @@ import AlertsList from '../components/dashboard/AlertsList.jsx';
 import QuickActions from '../components/dashboard/QuickActions.jsx';
 import Button from '../components/common/Button.jsx';
 import Badge from '../components/common/Badge.jsx';
+import MyFarmsSection from '../components/dashboard/MyFarmsSection.jsx';
 import { useHealth } from '../hooks/useHealth.js';
 import { useAuth } from '../hooks/useAuth.js';
 import dashboardService from '../services/dashboardService.js';
@@ -106,9 +104,7 @@ export const FarmerDashboard = () => {
     pendingNotifications: 0,
   };
 
-  const recentFarms = dashboardData?.recentFarms || [];
   const farmer = dashboardData?.farmer || user;
-  const isZeroFarms = !loading && !error && statistics.totalFarms === 0;
 
   return (
     <div className="space-y-6">
@@ -232,180 +228,15 @@ export const FarmerDashboard = () => {
         </div>
       )}
 
-      {/* Real MongoDB Farm Holdings Banner & Cards */}
-      {(!loading || dashboardData) && (
-        <div className="rounded-2xl border border-emerald-900/10 bg-white p-5 shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-100">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#166534] to-[#145A32] text-white shadow-xs">
-                <Tractor className="h-5 w-5 text-[#22C55E]" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-bold text-[#17251B]">My Farm Holdings</h2>
-                  <Badge size="sm" variant="success" dot>
-                    Live MongoDB Data
-                  </Badge>
-                </div>
-                <p className="text-xs text-slate-500">
-                  Aggregated land boundaries, active acreage, and crop holdings from your verified account
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Link to="/dashboard/farms">
-                <Button variant="outline" size="sm" icon={ArrowRight} className="bg-white text-xs">
-                  Manage All Farms
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* Empty State: Zero Farms */}
-          {isZeroFarms ? (
-            <div className="py-8 px-4 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-[#166534] mb-3">
-                <Tractor className="h-7 w-7" />
-              </div>
-              <h3 className="text-base font-bold text-[#17251B]">No Farms Registered Yet</h3>
-              <p className="text-xs text-slate-500 max-w-md mx-auto mt-1 mb-5">
-                You haven&apos;t added any farms or land parcels to your AgriSense account yet.
-                Register your first farm to track acreage, crops, soil metrics, and sensor telemetry.
-              </p>
-              <Link to="/dashboard/farms/new">
-                <Button variant="primary" size="md" icon={Plus}>
-                  Register Your First Farm
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <>
-              {/* Holdings KPI Metric Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
-                <div className="rounded-xl bg-slate-50/70 border border-slate-200/60 p-4">
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    Registered Farms
-                  </div>
-                  <div className="text-2xl font-black text-[#17251B] mt-1">
-                    {statistics.totalFarms}
-                  </div>
-                  <p className="text-[11px] text-[#166534] font-medium mt-0.5">
-                    {statistics.activeFarms} Active in database
-                    {statistics.inactiveFarms > 0 && ` • ${statistics.inactiveFarms} Inactive`}
-                  </p>
-                </div>
-
-                <div className="rounded-xl bg-slate-50/70 border border-slate-200/60 p-4">
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    Total Cultivated Acreage
-                  </div>
-                  <div className="text-2xl font-black text-[#17251B] mt-1">
-                    {statistics.totalCultivatedAcreage} ac
-                  </div>
-                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                    Active cultivated land
-                  </p>
-                </div>
-
-                <div className="rounded-xl bg-slate-50/70 border border-slate-200/60 p-4">
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    Active Crop Varieties
-                  </div>
-                  <div className="text-2xl font-black text-[#17251B] mt-1">
-                    {statistics.activeCropsCount}
-                  </div>
-                  <p className="text-[11px] text-[#166534] font-medium mt-0.5 truncate">
-                    {statistics.uniqueCrops.length > 0
-                      ? statistics.uniqueCrops.join(', ')
-                      : 'None registered'}
-                  </p>
-                </div>
-
-                <div className="rounded-xl bg-slate-50/70 border border-slate-200/60 p-4 flex flex-col justify-between">
-                  <div>
-                    <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                      Operations Status
-                    </div>
-                    <div className="text-xs font-bold text-[#17251B] mt-1 flex items-center gap-1.5">
-                      <CheckCircle2 className="h-4 w-4 text-[#22C55E]" />
-                      <span>{statistics.activeFarms > 0 ? 'Active Operations' : 'Idle'}</span>
-                    </div>
-                  </div>
-                  <Link
-                    to="/dashboard/farms/new"
-                    className="text-xs font-bold text-[#166534] hover:underline flex items-center gap-1 mt-2"
-                  >
-                    <span>+ Register New Parcel</span>
-                  </Link>
-                </div>
-              </div>
-
-              {/* Recent Farms Preview List */}
-              {recentFarms.length > 0 && (
-                <div className="mt-5 pt-4 border-t border-slate-100">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Recent Registered Parcels
-                    </h3>
-                    <Link
-                      to="/dashboard/farms"
-                      className="text-xs font-semibold text-[#166534] hover:underline"
-                    >
-                      View all ({statistics.totalFarms}) &rarr;
-                    </Link>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {recentFarms.map((farm) => (
-                      <div
-                        key={farm._id}
-                        className="p-3.5 rounded-xl border border-slate-200/70 bg-[#F7F9F5]/60 hover:bg-white hover:border-[#166534]/40 transition-all flex flex-col justify-between gap-2"
-                      >
-                        <div>
-                          <div className="flex items-start justify-between gap-2">
-                            <h4 className="text-xs font-bold text-[#17251B] truncate">
-                              {farm.name}
-                            </h4>
-                            <Badge
-                              size="sm"
-                              variant={
-                                farm.status === 'Active'
-                                  ? 'success'
-                                  : farm.status === 'Archived'
-                                  ? 'warning'
-                                  : 'neutral'
-                              }
-                              dot
-                            >
-                              {farm.status}
-                            </Badge>
-                          </div>
-                          <p className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
-                            <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
-                            <span className="truncate">
-                              {farm.district ? `${farm.district}, ` : ''}
-                              {farm.state || farm.location}
-                            </span>
-                          </p>
-                        </div>
-
-                        <div className="pt-2 border-t border-slate-200/50 flex items-center justify-between text-[11px]">
-                          <span className="font-semibold text-[#166534]">
-                            {farm.acreage} Acres
-                          </span>
-                          <span className="text-slate-400 capitalize">
-                            {farm.soilType || 'Soil not specified'}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
+      {/* My Farms Overview Section (Phase 2) */}
+      <MyFarmsSection
+        farms={dashboardData?.farms || dashboardData?.recentFarms || []}
+        statistics={statistics}
+        loading={loading}
+        error={error}
+        onRefresh={handleManualRefresh}
+        isRefreshing={isRefreshing}
+      />
 
       {/* Hardware / IoT Sensor Notice Banner */}
       <div className="rounded-xl border border-amber-200/90 bg-amber-50/80 p-4 shadow-2xs">

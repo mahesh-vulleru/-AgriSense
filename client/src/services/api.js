@@ -62,11 +62,20 @@ apiClient.interceptors.response.use(
       }
     }
 
+    let message = error.response?.data?.message;
+
+    if (!message) {
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        message = 'Server took too long to respond. Please check backend and database connectivity.';
+      } else if (error.message === 'Network Error' || !error.response) {
+        message = 'Unable to connect to AgriSense server. Please ensure the backend is running.';
+      } else {
+        message = error.message || 'An unexpected network error occurred';
+      }
+    }
+
     const customError = {
-      message:
-        error.response?.data?.message ||
-        error.message ||
-        'An unexpected network error occurred',
+      message,
       status: error.response?.status,
       data: error.response?.data,
     };

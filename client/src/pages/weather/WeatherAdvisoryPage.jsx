@@ -23,6 +23,7 @@ import {
   Wheat,
   Activity,
   LocateFixed,
+  Info,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -46,6 +47,7 @@ export const WeatherAdvisoryPage = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [errorCode, setErrorCode] = useState(null);
   const [coordinatesMissing, setCoordinatesMissing] = useState(false);
   const [missingFarmInfo, setMissingFarmInfo] = useState(null);
 
@@ -74,6 +76,7 @@ export const WeatherAdvisoryPage = () => {
         }
       } catch (err) {
         if (isMounted) {
+          setErrorCode(err.response?.data?.code || null);
           setError(
             err.response?.data?.message ||
               err.message ||
@@ -101,6 +104,7 @@ export const WeatherAdvisoryPage = () => {
       try {
         setLoading(true);
         setError(null);
+        setErrorCode(null);
         setCoordinatesMissing(false);
 
         const data = await weatherService.getFarmWeather(selectedFarmId);
@@ -119,6 +123,7 @@ export const WeatherAdvisoryPage = () => {
         }
       } catch (err) {
         if (isMounted) {
+          setErrorCode(err.response?.data?.code || null);
           setError(
             err.response?.data?.message ||
               err.message ||
@@ -149,8 +154,10 @@ export const WeatherAdvisoryPage = () => {
       if (data.success && data.weather) {
         setWeatherData(data.weather);
         setError(null);
+        setErrorCode(null);
       }
     } catch (err) {
+      setErrorCode(err.response?.data?.code || null);
       setError(err.response?.data?.message || err.message || 'Refresh failed');
     } finally {
       setRefreshing(false);
@@ -359,8 +366,70 @@ export const WeatherAdvisoryPage = () => {
         </div>
       )}
 
-      {/* 3. Error Banner */}
-      {error && !loading && (
+      {/* 3. Error Banner / OpenWeather Configuration Card */}
+      {error && !loading && (errorCode === 'OPENWEATHER_API_KEY_NOT_CONFIGURED' || errorCode === 'OPENWEATHER_AUTHENTICATION_FAILED' || error.includes('OpenWeather') || error.includes('OPENWEATHER_API_KEY')) ? (
+        <div className="rounded-2xl border border-amber-300 bg-amber-50/90 p-6 shadow-xs">
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-800">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                <Badge size="sm" variant="warning" className="font-bold">
+                  OpenWeather Setup Required
+                </Badge>
+                <span className="text-xs font-semibold text-amber-900">
+                  AgriSense Primary Weather Engine
+                </span>
+              </div>
+              <h3 className="text-sm font-bold text-amber-950">
+                OpenWeather API Key Configuration Needed
+              </h3>
+              <p className="text-xs text-amber-800 mt-1 leading-relaxed">
+                {error}
+              </p>
+
+              <div className="mt-4 p-3.5 rounded-xl bg-white border border-amber-200 text-xs text-slate-700 space-y-2">
+                <p className="font-bold text-[#166534]">How to configure your API key:</p>
+                <ol className="list-decimal list-inside space-y-1.5 text-slate-600 pl-1 leading-relaxed">
+                  <li>
+                    Register or sign in at{' '}
+                    <a
+                      href="https://openweathermap.org/api"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline font-semibold hover:text-blue-800"
+                    >
+                      openweathermap.org/api
+                    </a>{' '}
+                    and generate a free API key.
+                  </li>
+                  <li>
+                    In your backend configuration file (<code className="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-800">server/.env</code>), set:
+                    <div className="mt-1 p-2 rounded bg-slate-900 text-emerald-400 font-mono text-[11px] overflow-x-auto">
+                      WEATHER_PROVIDER=openweather<br />
+                      OPENWEATHER_API_KEY=your_actual_api_key_here
+                    </div>
+                  </li>
+                  <li>Restart the backend Node.js server.</li>
+                </ol>
+              </div>
+
+              <div className="mt-4 flex items-center gap-3">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={RefreshCw}
+                  loading={refreshing}
+                  onClick={handleRefresh}
+                >
+                  Verify Key &amp; Reload Telemetry
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : error && !loading ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50/90 p-5 shadow-xs">
           <div className="flex items-start gap-3">
             <AlertTriangle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
@@ -373,7 +442,7 @@ export const WeatherAdvisoryPage = () => {
             </Button>
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* 4. Missing Coordinates Action Card */}
       {coordinatesMissing && missingFarmInfo && (
@@ -487,10 +556,15 @@ export const WeatherAdvisoryPage = () => {
 
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 pb-6 border-b border-white/15">
               <div>
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
                   <Badge size="sm" variant="forest" className="!bg-white/20 !text-white !border-white/30 text-xs">
                     Current Atmospheric State
                   </Badge>
+                  {weatherData.coverage?.tier && (
+                    <Badge size="sm" variant="neutral" className="!bg-emerald-950/50 !text-emerald-100 !border-white/20 text-[11px] font-semibold">
+                      {weatherData.coverage.tier}
+                    </Badge>
+                  )}
                   <span className="text-xs text-emerald-200">
                     Source: {weatherData.provider}
                   </span>
@@ -568,10 +642,18 @@ export const WeatherAdvisoryPage = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-[11px] text-emerald-300/80">
-                <Calendar className="h-3.5 w-3.5" />
-                <span>Synchronized: {new Date(weatherData.fetchedAt).toLocaleTimeString()}</span>
-                {weatherData.isCached && <span>(Cached)</span>}
+              <div className="flex flex-wrap items-center gap-3 text-[11px] text-emerald-200/80">
+                {weatherData.current.observationFormatted && (
+                  <div className="flex items-center gap-1">
+                    <Sparkles className="h-3.5 w-3.5 text-emerald-300" />
+                    <span>Observed: <strong>{weatherData.current.observationFormatted}</strong></span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span>Synchronized: {new Date(weatherData.retrievedAt || weatherData.fetchedAt).toLocaleTimeString()}</span>
+                  {weatherData.isCached && <span className="ml-0.5">(Cached 15m)</span>}
+                </div>
               </div>
             </div>
           </div>
@@ -619,9 +701,9 @@ export const WeatherAdvisoryPage = () => {
                       >
                         <AlertTriangle className="h-4 w-4" />
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-xs font-bold text-[#17251B]">{alert.title}</h4>
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h4 className="text-xs font-bold text-[#17251B]">{alert.title || alert.event}</h4>
                           <span
                             className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${
                               alert.severity === 'danger'
@@ -631,10 +713,24 @@ export const WeatherAdvisoryPage = () => {
                           >
                             {alert.severity}
                           </span>
+                          {alert.isOfficialAlert ? (
+                            <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-rose-600 text-white">
+                              Official Alert
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-semibold uppercase px-1.5 py-0.5 rounded bg-emerald-100 text-[#166534]">
+                              Agri Advisory
+                            </span>
+                          )}
                         </div>
                         <p className="text-xs text-slate-600 mt-1 leading-relaxed">
                           {alert.message}
                         </p>
+                        {alert.source && (
+                          <p className="text-[10px] text-slate-400 mt-1 italic">
+                            Source: {alert.source}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -785,20 +881,36 @@ export const WeatherAdvisoryPage = () => {
           </div>
 
           {/* ========================================================== */}
-          {/* B. SEVEN-DAY METEOROLOGICAL FORECAST                       */}
+          {/* B. AGRO-METEOROLOGICAL FORECAST                            */}
           {/* ========================================================== */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-[#166534]" />
                 <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Seven-Day Agro-Meteorological Forecast
+                  {weatherData.coverage?.days || weatherData.forecast?.length || 5}-Day Agro-Meteorological Forecast
                 </h2>
               </div>
-              <span className="text-xs text-slate-400">7-Day Horizon</span>
+              <div className="flex items-center gap-2">
+                <Badge size="sm" variant="forest">
+                  {weatherData.coverage?.days || weatherData.forecast?.length || 5}-Day Horizon
+                </Badge>
+                {weatherData.coverage?.tier && (
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    {weatherData.coverage.tier}
+                  </span>
+                )}
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+            {weatherData.coverage?.limitations && (
+              <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600">
+                <Info className="h-4 w-4 text-[#166534] shrink-0" />
+                <span>{weatherData.coverage.limitations}</span>
+              </div>
+            )}
+
+            <div className={`grid grid-cols-2 sm:grid-cols-3 ${weatherData.forecast?.length === 5 ? 'lg:grid-cols-5' : 'lg:grid-cols-7'} gap-3`}>
               {weatherData.forecast?.map((day, idx) => (
                 <div
                   key={day.date}
@@ -871,7 +983,7 @@ export const WeatherAdvisoryPage = () => {
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-[#166534]" />
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                    7-Day Temperature Fluctuation Curve (°C)
+                    {weatherData.coverage?.days || weatherData.forecast?.length || 5}-Day Temperature Fluctuation Curve (°C)
                   </h3>
                 </div>
                 <div className="flex items-center gap-3 text-xs">
@@ -928,17 +1040,21 @@ export const WeatherAdvisoryPage = () => {
                     <h4 className="text-xs font-bold text-slate-800">Growing Degree Days (GDD)</h4>
                   </div>
                   <Badge size="sm" variant="forest">
-                    Base: 10°C
+                    Base: {weatherData.gdd?.baseTemperature || 10}°C
                   </Badge>
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-black text-[#145A32]">
-                    {weatherData.gdd?.sevenDayTotalGDD || 0}
+                    {weatherData.gdd?.periodTotalGDD ?? weatherData.gdd?.totalGDD ?? weatherData.gdd?.sevenDayTotalGDD ?? 0}
                   </span>
-                  <span className="text-xs text-slate-500 font-semibold">GDD thermal heat units</span>
+                  <span className="text-xs text-slate-500 font-semibold">thermal heat units</span>
                 </div>
-                <p className="text-[11px] text-slate-500 mt-1 leading-snug">
-                  Accumulated degree-days predict crop phenological progression (germination to maturity) and pest emergence windows.
+                <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                  Period: {weatherData.gdd?.calculationPeriod || `${weatherData.coverage?.days || weatherData.forecast?.length || 5}-Day Rolling Forecast Window`}
+                  {weatherData.gdd?.accumulationStartDate ? ` (from ${weatherData.gdd.accumulationStartDate})` : ''}
+                </p>
+                <p className="text-[11px] text-slate-500 mt-1.5 leading-snug">
+                  {weatherData.gdd?.explanation || 'Accumulated degree-days predict crop phenological progression (germination to maturity) and pest emergence windows.'}
                 </p>
               </div>
 
@@ -947,7 +1063,9 @@ export const WeatherAdvisoryPage = () => {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-1.5">
                     <Droplets className="h-4 w-4 text-blue-600" />
-                    <h4 className="text-xs font-bold text-slate-800">7-Day Rainfall Total</h4>
+                    <h4 className="text-xs font-bold text-slate-800">
+                      {weatherData.coverage?.days || weatherData.forecast?.length || 5}-Day Rainfall Total
+                    </h4>
                   </div>
                   <Badge size="sm" variant="neutral">
                     Accumulation
@@ -955,14 +1073,14 @@ export const WeatherAdvisoryPage = () => {
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-black text-blue-700">
-                    {weatherData.rainfallSummary?.sevenDayTotalMm || 0} mm
+                    {weatherData.rainfallSummary?.totalMm ?? weatherData.rainfallSummary?.totalRainfallMm ?? weatherData.rainfallSummary?.sevenDayTotalMm ?? 0} mm
                   </span>
                   <span className="text-xs text-slate-500 font-semibold">
                     across {weatherData.rainfallSummary?.rainyDaysCount || 0} rainy day{weatherData.rainfallSummary?.rainyDaysCount === 1 ? '' : 's'}
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-500 mt-1 leading-snug">
-                  Measures total precipitation expected to replenish soil root zones vs atmospheric loss.
+                  Total anticipated precipitation to replenish field soil moisture vs atmospheric loss.
                 </p>
               </div>
 
@@ -1036,14 +1154,14 @@ export const WeatherAdvisoryPage = () => {
           </div>
 
           {/* ========================================================== */}
-          {/* 7-DAY SPRAY SUITABILITY FORECAST TABLE                     */}
+          {/* SPRAY SUITABILITY FORECAST TABLE                           */}
           {/* ========================================================== */}
           <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Wind className="h-4 w-4 text-[#166534]" />
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Seven-Day Foliar Spray &amp; Pesticide Suitability Matrix
+                  {weatherData.coverage?.days || weatherData.forecast?.length || 5}-Day Foliar Spray &amp; Pesticide Suitability Matrix
                 </h3>
               </div>
               <Badge size="sm" variant="forest">

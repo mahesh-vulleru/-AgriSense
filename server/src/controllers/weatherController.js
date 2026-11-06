@@ -72,7 +72,7 @@ export const getFarmWeather = async (req, res, next) => {
       weather: weatherData,
     });
   } catch (error) {
-    logger.error('Error fetching farm weather:', error);
+    logger.error(`Error fetching farm weather: ${error.message}`);
     next(error);
   }
 };
@@ -109,7 +109,7 @@ export const getWeatherByCoordinates = async (req, res, next) => {
       weather: weatherData,
     });
   } catch (error) {
-    logger.error('Error fetching coordinate weather:', error);
+    logger.error(`Error fetching coordinate weather: ${error.message}`);
     next(error);
   }
 };
@@ -168,8 +168,18 @@ export const updateFarmCoordinates = async (req, res, next) => {
 
     logger.info(`Farm ${farm._id} coordinates updated to [${lat}, ${lon}] by user ${req.user._id}`);
 
-    // Fetch live weather immediately with the updated coordinates
-    const weatherData = await getAgriculturalWeather(lat, lon, farm);
+    // Attempt to fetch live weather immediately with the updated coordinates
+    let weatherData = null;
+    let weatherError = null;
+    try {
+      weatherData = await getAgriculturalWeather(lat, lon, farm);
+    } catch (err) {
+      logger.warn(`Could not fetch live weather immediately after saving coordinates: ${err.message}`);
+      weatherError = {
+        code: err.code || 'WEATHER_FETCH_FAILED',
+        message: err.message,
+      };
+    }
 
     return res.status(200).json({
       success: true,
@@ -178,9 +188,11 @@ export const updateFarmCoordinates = async (req, res, next) => {
         id: farm._id,
         name: farm.name,
         location: farm.location,
+        hasCoordinates: true,
         coordinates: farm.coordinates,
       },
       weather: weatherData,
+      weatherError,
     });
   } catch (error) {
     logger.error('Error updating farm coordinates:', error);

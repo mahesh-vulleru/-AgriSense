@@ -61,7 +61,7 @@ export const WeatherSummaryCard = ({ farms = [] }) => {
                 Farm Micro-Climate &amp; Weather
               </h3>
               <Badge size="sm" variant={weather ? 'forest' : 'neutral'}>
-                {weather ? 'Live Telemetry' : 'Coordinates Pending'}
+                {weather ? 'OpenWeather Live' : 'Coordinates Pending'}
               </Badge>
             </div>
             {activeFarm && (
@@ -77,14 +77,14 @@ export const WeatherSummaryCard = ({ farms = [] }) => {
           to="/dashboard/weather"
           className="inline-flex items-center gap-1.5 text-xs font-bold text-[#166534] hover:text-[#145A32] transition-colors self-start sm:self-center"
         >
-          <span>7-Day Weather Advisory</span>
+          <span>Weather Advisory &amp; Forecast</span>
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
 
       {loading ? (
         <div className="py-4 flex items-center justify-center text-xs text-slate-400 animate-pulse">
-          Retrieving live satellite weather data...
+          Retrieving live OpenWeather meteorological telemetry...
         </div>
       ) : weather ? (
         <div className="pt-3.5 grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -122,11 +122,13 @@ export const WeatherSummaryCard = ({ farms = [] }) => {
           </div>
 
           <div className="p-2.5 rounded-xl bg-[#F7F9F5]">
-            <span className="text-[10px] font-bold text-slate-400 uppercase">7-Day Rain</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase">
+              {weather.forecast?.length || 5}-Day Rain
+            </span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <CloudRain className="h-4 w-4 text-blue-600" />
               <span className="text-2xl font-black text-blue-700">
-                {weather.rainfallSummary?.sevenDayTotalMm || 0}
+                {weather.rainfallSummary?.totalMm ?? weather.rainfallSummary?.totalRainfallMm ?? weather.rainfallSummary?.sevenDayTotalMm ?? 0}
               </span>
               <span className="text-[10px] text-slate-400">mm</span>
             </div>

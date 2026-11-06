@@ -11,6 +11,18 @@ const startServer = async () => {
   const server = app.listen(env.PORT, () => {
     logger.success(`AgriSense Server running in ${env.NODE_ENV} mode on http://localhost:${env.PORT}`);
     logger.info(`Health check available at http://localhost:${env.PORT}/api/health`);
+
+    // Validate weather provider configuration on startup
+    if (env.WEATHER_PROVIDER === 'openweather') {
+      const key = env.OPENWEATHER_API_KEY?.trim();
+      if (!key || key === 'YOUR_OPENWEATHER_API_KEY') {
+        logger.warn(
+          '[CONFIG] OpenWeather API key is not configured or using placeholder "YOUR_OPENWEATHER_API_KEY" in server/.env. Weather endpoints will return configuration error until a valid key is set.'
+        );
+      } else {
+        logger.success('[CONFIG] OpenWeather provider active with configured API credentials.');
+      }
+    }
   });
 
   // Graceful shutdown handling

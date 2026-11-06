@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import app from '../src/app.js';
 import User from '../src/models/User.js';
 import Farm from '../src/models/Farm.js';
+import Crop from '../src/models/Crop.js';
 import { connectDB } from '../src/config/db.js';
 
 describe('AgriSense Phase 1 - Farmer Dashboard Data Integration Test Suite', () => {
@@ -13,6 +14,7 @@ describe('AgriSense Phase 1 - Farmer Dashboard Data Integration Test Suite', () 
   let farmerWithFarmsToken = '';
   let farmerWithFarmsId = '';
   let farmerOtherToken = '';
+  let farmerOtherId = '';
 
   const farmerEmptyEmail = `farmer_zero_${Date.now()}@dashboard-suite.test`;
   const farmerWithFarmsEmail = `farmer_farms_${Date.now()}@dashboard-suite.test`;
@@ -76,9 +78,10 @@ describe('AgriSense Phase 1 - Farmer Dashboard Data Integration Test Suite', () 
     });
     const regOtherData = await regOtherRes.json();
     farmerOtherToken = regOtherData.token;
+    farmerOtherId = regOtherData.user.id;
 
     // Seed Farm 1 for farmerWithFarms: Active, 15.5 acres, Wheat & Corn
-    await fetch(`${baseUrl}/farms`, {
+    const farm1Res = await fetch(`${baseUrl}/farms`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -93,9 +96,11 @@ describe('AgriSense Phase 1 - Farmer Dashboard Data Integration Test Suite', () 
         mainCrops: ['Wheat', 'Corn'],
       }),
     });
+    const farm1Data = await farm1Res.json();
+    const farm1Id = farm1Data.farm.id;
 
     // Seed Farm 2 for farmerWithFarms: Active, 10.0 acres, Corn & Soybean
-    await fetch(`${baseUrl}/farms`, {
+    const farm2Res = await fetch(`${baseUrl}/farms`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -110,6 +115,8 @@ describe('AgriSense Phase 1 - Farmer Dashboard Data Integration Test Suite', () 
         mainCrops: ['Corn', 'Soybean'],
       }),
     });
+    const farm2Data = await farm2Res.json();
+    const farm2Id = farm2Data.farm.id;
 
     // Seed Farm 3 for farmerWithFarms: Archived, 5.0 acres, should not add to active acreage
     const farm3Res = await fetch(`${baseUrl}/farms`, {
@@ -134,7 +141,7 @@ describe('AgriSense Phase 1 - Farmer Dashboard Data Integration Test Suite', () 
     });
 
     // Seed Farm for Other Farmer: 50 acres, Cotton
-    await fetch(`${baseUrl}/farms`, {
+    const farmOtherRes = await fetch(`${baseUrl}/farms`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -149,6 +156,61 @@ describe('AgriSense Phase 1 - Farmer Dashboard Data Integration Test Suite', () 
         mainCrops: ['Cotton'],
       }),
     });
+    const farmOtherData = await farmOtherRes.json();
+    const farmOtherId = farmOtherData.farm.id;
+
+    // Seed real Crop documents for farmerWithFarms
+    // 1. Wheat with full dates
+    await Crop.create({
+      owner: farmerWithFarmsId,
+      farm: farm1Id,
+      name: 'Durum Wheat',
+      variety: 'HD-2967',
+      cultivatedArea: 10.0,
+      plantingDate: new Date('2026-10-01'),
+      expectedHarvestDate: new Date('2027-02-15'),
+      growthStage: 'Vegetative Growth',
+      status: 'Active',
+    });
+
+    // 2. Sweet Corn with missing expected harvest date
+    await Crop.create({
+      owner: farmerWithFarmsId,
+      farm: farm2Id,
+      name: 'Sweet Corn',
+      variety: 'Pioneer 3396',
+      cultivatedArea: 6.0,
+      plantingDate: new Date('2026-09-15'),
+      expectedHarvestDate: null,
+      growthStage: 'Flowering',
+      status: 'Active',
+    });
+
+    // 3. Soybean with missing planting date and past harvest date (overdue/harvested)
+    await Crop.create({
+      owner: farmerWithFarmsId,
+      farm: farm2Id,
+      name: 'Soybean',
+      variety: 'JS-335',
+      cultivatedArea: 4.0,
+      plantingDate: null,
+      expectedHarvestDate: new Date('2026-10-25'),
+      growthStage: 'Harvested',
+      status: 'Harvested',
+    });
+
+    // Seed Crop for Other Farmer (to verify strict farmer data isolation)
+    await Crop.create({
+      owner: farmerOtherId,
+      farm: farmOtherId,
+      name: 'Bt Cotton',
+      variety: 'Bollgard II',
+      cultivatedArea: 25.0,
+      plantingDate: new Date('2026-08-01'),
+      expectedHarvestDate: new Date('2026-12-20'),
+      growthStage: 'Fruiting',
+      status: 'Active',
+    });
   });
 
   after(async () => {
@@ -156,11 +218,13 @@ describe('AgriSense Phase 1 - Farmer Dashboard Data Integration Test Suite', () 
     await User.deleteMany({
       email: { $in: [farmerEmptyEmail, farmerWithFarmsEmail, farmerOtherEmail] },
     });
-    await Farm.deleteMany({ owner: farmerWithFarmsId });
+    await Farm.deleteMany({ owner: { $in: [farmerWithFarmsId, farmerOtherId] } });
+    await Crop.deleteMany({ owner: { $in: [farmerWithFarmsId, farmerOtherId] } });
 
     if (server) {
       await new Promise((resolve) => server.close(resolve));
     }
+    await mongoose.disconnect();
   });
 
   it('1. Should reject dashboard request when token is missing (401)', async () => {
@@ -199,6 +263,13 @@ describe('AgriSense Phase 1 - Farmer Dashboard Data Integration Test Suite', () 
       data.data.sensorStatus.message,
       'Sensor data unavailable – connect a device to view live readings.'
     );
+
+    // Verify Phase 3: Zero crops farmer
+    assert.ok(data.data.cropsData);
+    assert.strictEqual(data.data.cropsData.crops.length, 0);
+    assert.strictEqual(data.data.cropsData.statistics.totalCrops, 0);
+    assert.strictEqual(data.data.cropsData.statistics.activeCrops, 0);
+    assert.strictEqual(data.data.cropsData.statistics.harvestedCrops, 0);
   });
 
   it('4. Should accurately calculate statistics for farmer with multiple farms', async () => {
@@ -223,6 +294,32 @@ describe('AgriSense Phase 1 - Farmer Dashboard Data Integration Test Suite', () 
     assert.strictEqual(data.data.recentFarms.length, 3);
     assert.ok(Array.isArray(data.data.farms));
     assert.strictEqual(data.data.farms.length, 3);
+
+    // Verify Phase 3: Multi-crop farmer with real MongoDB records & growth stages
+    assert.ok(data.data.cropsData);
+    assert.strictEqual(data.data.cropsData.crops.length, 3);
+    assert.strictEqual(data.data.cropsData.statistics.totalCrops, 3);
+    assert.strictEqual(data.data.cropsData.statistics.activeCrops, 2);
+    assert.strictEqual(data.data.cropsData.statistics.harvestedCrops, 1);
+    assert.strictEqual(data.data.cropsData.statistics.cropVarietiesCount, 3);
+    assert.strictEqual(data.data.cropsData.statistics.cropDistribution.length, 3);
+
+    // Associated farm verification
+    const wheat = data.data.cropsData.crops.find((c) => c.name === 'Durum Wheat');
+    assert.ok(wheat);
+    assert.strictEqual(wheat.variety, 'HD-2967');
+    assert.strictEqual(wheat.growthStage, 'Vegetative Growth');
+    assert.strictEqual(wheat.farm.name, 'Valley Green Farm 1');
+
+    // Missing harvest date verification
+    const corn = data.data.cropsData.crops.find((c) => c.name === 'Sweet Corn');
+    assert.ok(corn);
+    assert.strictEqual(corn.expectedHarvestDate, null);
+
+    // Missing planting date verification
+    const soybean = data.data.cropsData.crops.find((c) => c.name === 'Soybean');
+    assert.ok(soybean);
+    assert.strictEqual(soybean.plantingDate, null);
   });
 
   it('5. Should strictly isolate data so Farmer A cannot see Farmer B records or acreage', async () => {
@@ -245,6 +342,12 @@ describe('AgriSense Phase 1 - Farmer Dashboard Data Integration Test Suite', () 
     // Confirm Farmer A's farm list does not contain Farmer B's farm
     const aNames = dataA.data.recentFarms.map((f) => f.name);
     assert.ok(!aNames.includes('Independent Farm'));
+
+    // Verify Phase 3: Farmer data isolation for crops
+    assert.strictEqual(dataA.data.cropsData.crops.length, 3);
+    assert.strictEqual(dataB.data.cropsData.crops.length, 1);
+    assert.strictEqual(dataB.data.cropsData.crops[0].name, 'Bt Cotton');
+    assert.ok(!dataA.data.cropsData.crops.map((c) => c.name).includes('Bt Cotton'));
   });
 
   it('6. Should return 503 Service Unavailable when database connection is unavailable', async () => {

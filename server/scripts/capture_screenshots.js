@@ -17,8 +17,8 @@ async function capture() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      email: 'farmer.phase2@agrisense.test',
-      password: 'Password123!',
+      email: 'maheshvulleru@gmail.com',
+      password: 'Mahesh@123',
     }),
   });
   const loginData = await loginRes.json();
@@ -96,33 +96,33 @@ async function capture() {
     await send('Page.navigate', { url: 'http://localhost:5173/dashboard' });
     await sleep(2500);
 
-    // A. Desktop Screenshot (1440x960)
-    console.log('5. Capturing desktop screenshot (1440x960)...');
+    // A. Desktop Screenshot (1440x1600)
+    console.log('5. Capturing desktop screenshot (1440x1600)...');
     await send('Emulation.setDeviceMetricsOverride', {
       width: 1440,
-      height: 1200,
+      height: 1600,
       deviceScaleFactor: 1,
       mobile: false,
     });
-    await sleep(800);
+    await sleep(1000);
 
     const desktopCapture = await send('Page.captureScreenshot', { format: 'png' });
-    const desktopPath = path.join(ARTIFACT_DIR, 'farmer_dashboard_phase2_desktop.png');
+    const desktopPath = path.join(ARTIFACT_DIR, 'farmer_dashboard_phase3_desktop.png');
     fs.writeFileSync(desktopPath, Buffer.from(desktopCapture.data, 'base64'));
     console.log('Saved desktop screenshot to:', desktopPath);
 
-    // B. Mobile Screenshot (390x844 - iPhone 14 style)
-    console.log('6. Capturing mobile screenshot (390x1000)...');
+    // B. Mobile Screenshot (390x1500 - iPhone 14 style)
+    console.log('6. Capturing mobile screenshot (390x1500)...');
     await send('Emulation.setDeviceMetricsOverride', {
       width: 390,
-      height: 1100,
+      height: 1500,
       deviceScaleFactor: 2,
       mobile: true,
     });
-    await sleep(800);
+    await sleep(1000);
 
     const mobileCapture = await send('Page.captureScreenshot', { format: 'png' });
-    const mobilePath = path.join(ARTIFACT_DIR, 'farmer_dashboard_phase2_mobile.png');
+    const mobilePath = path.join(ARTIFACT_DIR, 'farmer_dashboard_phase3_mobile.png');
     fs.writeFileSync(mobilePath, Buffer.from(mobileCapture.data, 'base64'));
     console.log('Saved mobile screenshot to:', mobilePath);
 

@@ -34,11 +34,11 @@ export const AlertsList = () => {
     <Card className="col-span-12 lg:col-span-6">
       <CardHeader
         title="Field Alerts & Advisory"
-        subtitle="Intelligent agro-climatic advisories"
+        subtitle="Simulated agro-climatic advisories"
         action={
           <div className="flex items-center gap-2">
-            <Badge size="sm" variant="neutral">
-              Sample Data
+            <Badge size="sm" variant="warning">
+              DEMO / SIMULATED
             </Badge>
           </div>
         }

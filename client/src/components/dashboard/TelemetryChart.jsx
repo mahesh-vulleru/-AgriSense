@@ -56,11 +56,11 @@ export const TelemetryChart = () => {
     <Card className="col-span-12 lg:col-span-8">
       <CardHeader
         title="24-Hour Field Telemetry Trends"
-        subtitle="Live automated sensor stream across Field Sector A"
+        subtitle="Simulated 24-hour cycle preview across Field Sector A"
         action={
           <div className="flex items-center gap-2">
-            <Badge size="sm" variant="neutral">
-              Sample Data
+            <Badge size="sm" variant="warning">
+              DEMO / SIMULATED
             </Badge>
           </div>
         }

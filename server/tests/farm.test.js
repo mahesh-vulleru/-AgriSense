@@ -265,4 +265,10 @@ describe('AgriSense Phase 4 - Farm Management Test Suite', () => {
     assert.equal(persistedFarm.status, 'Archived');
     assert.equal(persistedFarm.acreage, 50.0);
   });
+
+  after(async () => {
+    if (server) {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
 });

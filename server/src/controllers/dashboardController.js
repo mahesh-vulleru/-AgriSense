@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import Farm from '../models/Farm.js';
+import Crop from '../models/Crop.js';
 import { logger } from '../utils/logger.js';
 
 /**
@@ -62,6 +63,47 @@ export const getFarmerDashboardStats = async (req, res, next) => {
         irrigationBreakdown[irrigation] = (irrigationBreakdown[irrigation] || 0) + 1;
       });
 
+    // Fetch farmer-owned crops and populate associated farm info
+    const crops = await Crop.find({ owner: farmerId })
+      .populate('farm', 'name location village district state acreage')
+      .sort({ createdAt: -1 });
+
+    const totalCrops = crops.length;
+    const activeCrops = crops.filter((c) => c.status === 'Active').length;
+    const harvestedCrops = crops.filter((c) => c.status === 'Harvested').length;
+    const archivedCrops = crops.filter((c) => c.status === 'Archived').length;
+
+    // Crop varieties count
+    const cropVarietiesSet = new Set(
+      crops
+        .map((c) => c.variety)
+        .filter((v) => typeof v === 'string' && v.trim().length > 0)
+    );
+    const cropVarietiesCount = cropVarietiesSet.size;
+
+    // Crop distribution by crop name
+    const cropDistMap = {};
+    crops.forEach((c) => {
+      cropDistMap[c.name] = (cropDistMap[c.name] || 0) + 1;
+    });
+    const cropDistribution = Object.entries(cropDistMap).map(([name, count]) => ({
+      name,
+      count,
+    }));
+
+    // Growth stage distribution
+    const growthStageDistMap = {};
+    crops.forEach((c) => {
+      growthStageDistMap[c.growthStage] =
+        (growthStageDistMap[c.growthStage] || 0) + 1;
+    });
+    const growthStageDistribution = Object.entries(growthStageDistMap).map(
+      ([stage, count]) => ({
+        stage,
+        count,
+      })
+    );
+
     // Check dynamically if Notification model exists
     let pendingNotifications = 0;
     if (mongoose.models.Notification) {
@@ -96,6 +138,18 @@ export const getFarmerDashboardStats = async (req, res, next) => {
         },
         farms,
         recentFarms: farms.slice(0, 5),
+        cropsData: {
+          crops,
+          statistics: {
+            totalCrops,
+            activeCrops,
+            harvestedCrops,
+            archivedCrops,
+            cropVarietiesCount,
+            cropDistribution,
+            growthStageDistribution,
+          },
+        },
         sensorStatus: {
           connected: false,
           message: 'Sensor data unavailable – connect a device to view live readings.',

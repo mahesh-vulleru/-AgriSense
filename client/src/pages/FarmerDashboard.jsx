@@ -23,6 +23,7 @@ import QuickActions from '../components/dashboard/QuickActions.jsx';
 import Button from '../components/common/Button.jsx';
 import Badge from '../components/common/Badge.jsx';
 import MyFarmsSection from '../components/dashboard/MyFarmsSection.jsx';
+import MyCropsSection from '../components/dashboard/MyCropsSection.jsx';
 import { useHealth } from '../hooks/useHealth.js';
 import { useAuth } from '../hooks/useAuth.js';
 import dashboardService from '../services/dashboardService.js';
@@ -236,6 +237,14 @@ export const FarmerDashboard = () => {
         error={error}
         onRefresh={handleManualRefresh}
         isRefreshing={isRefreshing}
+      />
+
+      {/* My Crops Overview Section (Phase 3) */}
+      <MyCropsSection
+        crops={dashboardData?.cropsData?.crops || []}
+        statistics={dashboardData?.cropsData?.statistics || {}}
+        loading={loading}
+        error={error}
       />
 
       {/* Hardware / IoT Sensor Notice Banner */}

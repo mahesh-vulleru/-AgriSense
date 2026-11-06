@@ -151,6 +151,8 @@ export const getFarms = async (req, res, next) => {
       summary: {
         totalFarms,
         activeFarms,
+        inactiveFarms: allUserFarms.filter((f) => f.status === 'Inactive').length,
+        archivedFarms: allUserFarms.filter((f) => f.status === 'Archived').length,
         totalAcreage,
       },
       pagination: {

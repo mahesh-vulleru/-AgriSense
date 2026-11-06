@@ -221,6 +221,8 @@ describe('AgriSense Phase 1 - Farmer Dashboard Data Integration Test Suite', () 
     assert.ok(data.data.statistics.uniqueCrops.includes('Corn'));
     assert.ok(data.data.statistics.uniqueCrops.includes('Soybean'));
     assert.strictEqual(data.data.recentFarms.length, 3);
+    assert.ok(Array.isArray(data.data.farms));
+    assert.strictEqual(data.data.farms.length, 3);
   });
 
   it('5. Should strictly isolate data so Farmer A cannot see Farmer B records or acreage', async () => {

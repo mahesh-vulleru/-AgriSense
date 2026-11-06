@@ -1,4 +1,4 @@
-import { Droplets, FileText, Wrench, ShieldAlert, Tractor } from 'lucide-react';
+import { FileText, Wrench, Tractor, CloudSun, ShieldAlert } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Card, { CardHeader } from '../common/Card.jsx';
 import Badge from '../common/Badge.jsx';
@@ -30,19 +30,18 @@ export const QuickActions = () => {
           </div>
         </Link>
 
-        <button
-          type="button"
-          onClick={() => alert('Demo action: Irrigation trigger signal sent')}
-          className="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200/80 bg-white hover:bg-[#F7F9F5] hover:border-[#22C55E] text-left transition-all group cursor-pointer"
+        <Link
+          to="/dashboard/weather"
+          className="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200/80 bg-white hover:bg-[#F7F9F5] hover:border-[#166534] text-left transition-all group cursor-pointer"
         >
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-[#166534] group-hover:bg-[#166534] group-hover:text-white transition-colors">
-            <Droplets className="h-5 w-5" />
+            <CloudSun className="h-5 w-5" />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-[#17251B]">Activate Drip Cycle</h4>
-            <p className="text-[11px] text-slate-500 mt-0.5">Start 20m pulse in Sector B</p>
+            <h4 className="text-xs font-bold text-[#17251B]">Weather Advisory</h4>
+            <p className="text-[11px] text-slate-500 mt-0.5">7-day micro-climate &amp; spray guide</p>
           </div>
-        </button>
+        </Link>
 
         <button
           type="button"

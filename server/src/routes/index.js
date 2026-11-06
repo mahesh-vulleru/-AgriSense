@@ -3,6 +3,7 @@ import healthRoutes from './healthRoutes.js';
 import authRoutes from './authRoutes.js';
 import farmRoutes from './farmRoutes.js';
 import dashboardRoutes from './dashboardRoutes.js';
+import weatherRoutes from './weatherRoutes.js';
 
 const router = Router();
 
@@ -17,6 +18,9 @@ router.use('/farms', farmRoutes);
 
 // Mount dashboard aggregation routes under /api/dashboard
 router.use('/dashboard', dashboardRoutes);
+
+// Mount weather advisory routes under /api/weather
+router.use('/weather', weatherRoutes);
 
 // Root /api information endpoint
 router.get('/', (req, res) => {

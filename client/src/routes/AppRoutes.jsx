@@ -8,6 +8,7 @@ import MyFarmsPage from '../pages/farms/MyFarmsPage.jsx';
 import AddFarmPage from '../pages/farms/AddFarmPage.jsx';
 import FarmDetailsPage from '../pages/farms/FarmDetailsPage.jsx';
 import EditFarmPage from '../pages/farms/EditFarmPage.jsx';
+import WeatherAdvisoryPage from '../pages/weather/WeatherAdvisoryPage.jsx';
 import NotFoundPage from '../pages/NotFoundPage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import PublicRoute from './PublicRoute.jsx';
@@ -47,7 +48,7 @@ export const AppRoutes = () => {
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute allowedRoles={['farmer', 'admin']}>
+          <ProtectedRoute allowedRoles={['farmer', 'expert', 'admin']}>
             <AppLayout />
           </ProtectedRoute>
         }
@@ -72,7 +73,7 @@ export const AppRoutes = () => {
         <Route path="monitoring" element={<GenericModulePage />} />
         <Route path="soil-analysis" element={<GenericModulePage />} />
         <Route path="irrigation" element={<GenericModulePage />} />
-        <Route path="weather" element={<GenericModulePage />} />
+        <Route path="weather" element={<WeatherAdvisoryPage />} />
         <Route path="disease-detection" element={<GenericModulePage />} />
         <Route path="reports" element={<GenericModulePage />} />
         <Route path="notifications" element={<GenericModulePage />} />

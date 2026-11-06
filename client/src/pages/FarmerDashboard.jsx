@@ -24,6 +24,7 @@ import Button from '../components/common/Button.jsx';
 import Badge from '../components/common/Badge.jsx';
 import MyFarmsSection from '../components/dashboard/MyFarmsSection.jsx';
 import MyCropsSection from '../components/dashboard/MyCropsSection.jsx';
+import WeatherSummaryCard from '../components/dashboard/WeatherSummaryCard.jsx';
 import { useHealth } from '../hooks/useHealth.js';
 import { useAuth } from '../hooks/useAuth.js';
 import dashboardService from '../services/dashboardService.js';
@@ -246,6 +247,9 @@ export const FarmerDashboard = () => {
         loading={loading}
         error={error}
       />
+
+      {/* Micro-Climate & Weather Advisory Section (Phase 4) */}
+      <WeatherSummaryCard farms={dashboardData?.farms || dashboardData?.recentFarms || []} />
 
       {/* Hardware / IoT Sensor Notice Banner */}
       <div className="rounded-xl border border-amber-200/90 bg-amber-50/80 p-4 shadow-2xs">

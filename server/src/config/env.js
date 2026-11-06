@@ -10,4 +10,6 @@ export const env = {
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
   JWT_SECRET: process.env.JWT_SECRET || 'agrisense_dev_fallback_secret_key_2026',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
+  WEATHER_PROVIDER: process.env.WEATHER_PROVIDER || 'open-meteo',
+  OPENWEATHER_API_KEY: process.env.OPENWEATHER_API_KEY || '',
 };

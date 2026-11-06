@@ -232,5 +232,11 @@ describe('AgriSense Phase 2 - Authentication & Authorization Test Suite', () => 
     assert.equal(res.status, 401);
     assert.equal(data.success, false);
   });
+
+  after(async () => {
+    if (server) {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
 });
 

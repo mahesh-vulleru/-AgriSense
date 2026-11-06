@@ -33,10 +33,10 @@ export const FieldStatusCard = () => {
     <Card className="col-span-12 lg:col-span-4">
       <CardHeader
         title="Field Sectors & Health"
-        subtitle="Active cultivation zones"
+        subtitle="Active cultivation zones preview"
         action={
-          <Badge size="sm" variant="neutral">
-            Sample Data
+          <Badge size="sm" variant="warning">
+            DEMO / SIMULATED
           </Badge>
         }
       />

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import healthRoutes from './healthRoutes.js';
 import authRoutes from './authRoutes.js';
 import farmRoutes from './farmRoutes.js';
+import dashboardRoutes from './dashboardRoutes.js';
 
 const router = Router();
 
@@ -13,6 +14,9 @@ router.use('/auth', authRoutes);
 
 // Mount farm management routes under /api/farms
 router.use('/farms', farmRoutes);
+
+// Mount dashboard aggregation routes under /api/dashboard
+router.use('/dashboard', dashboardRoutes);
 
 // Root /api information endpoint
 router.get('/', (req, res) => {
@@ -27,6 +31,9 @@ router.get('/', (req, res) => {
         register: 'POST /api/auth/register',
         login: 'POST /api/auth/login',
         me: 'GET /api/auth/me',
+      },
+      dashboard: {
+        farmer: 'GET /api/dashboard/farmer',
       },
       farms: {
         create: 'POST /api/farms',

@@ -1,170 +1,151 @@
-# AgriSense – Application Workflow & Architecture Alignment
+# AgriSense – Application Workflow, Navigation Hierarchy & Architecture Alignment
 
 ## 1. Executive Summary
 
-AgriSense is an intelligent agriculture IoT and precision management platform designed to help farmers optimize yields, monitor soil and crop telemetry, manage farm boundaries, track weather risks, and consult with agricultural specialists.
+AgriSense is an intelligent precision agriculture and farm management platform designed for farmers, agricultural extension specialists, and system administrators. The platform establishes a structured, step-by-step agricultural journey spanning farm parcel creation, crop lifecycle management, IoT soil and telemetry monitoring, hyper-local agro-meteorology, automated irrigation scheduling, AI-powered disease diagnosis, and specialist consultations.
 
-This document establishes the end-to-end architectural alignment, role-based navigation model, route mappings, database entities, and future module roadmaps matching the 15-screen UI reference specification.
-
----
-
-## 2. Platform Architecture & Technology Stack
-
-The platform is constructed on a decoupled modern web architecture:
-
-```
-┌────────────────────────────────────────────────────────┐
-│               Client Tier (React 19 + Vite)            │
-│  - Tailwind CSS 4.x       - Lucide React               │
-│  - React Router DOM 7.x   - Recharts                   │
-│  - Axios Client + Interceptors for JWT Bearer Tokens   │
-└──────────────────────────┬─────────────────────────────┘
-                           │ HTTP / JSON REST APIs (Bearer JWT)
-┌──────────────────────────▼─────────────────────────────┐
-│             Application Server (Express.js / Node.js)   │
-│  - JWT Middleware (protect, authorize)                 │
-│  - Security: Helmet, CORS, Express-Rate-Limit          │
-│  - Controllers: Auth, Farm, Health, Analytics           │
-└──────────────────────────┬─────────────────────────────┘
-                           │ Mongoose ODM Driver
-┌──────────────────────────▼─────────────────────────────┐
-│                 Data Persistence Tier                   │
-│  - MongoDB Atlas (Database: agrisense)                 │
-│  - Indexes: Email (unique), Farm Owner, Geospatial     │
-└────────────────────────────────────────────────────────┘
-```
+This document details the restructured sidebar architecture, the logical farmer workflow, upstream/downstream data dependencies, route mappings, role-based access rules, and current implementation statuses across the 15 UI reference screens.
 
 ---
 
-## 3. Role-Based Access Control (RBAC) Specification
+## 2. Logical Farmer Journey & Workflow Dependencies
 
-AgriSense enforces a 3-tier Role-Based Access Control model:
-
-| Capability / Resource | Farmer | Expert | Admin |
-| :--- | :---: | :---: | :---: |
-| **Public Landing & Authentication** | ✅ | ✅ | ✅ |
-| **Personal Farmer Dashboard** | ✅ | ❌ | ❌ |
-| **Farm Management (CRUD)** | ✅ (Owned Only) | ❌ | ✅ (All Farms) |
-| **Crops & Telemetry View** | ✅ (Owned Farms) | ✅ (Assigned) | ✅ (All) |
-| **Soil Analysis & Irrigation Controls** | ✅ | ❌ | ✅ |
-| **AI Disease Detection Scanner** | ✅ | ✅ (Reviewer) | ✅ |
-| **Farmer Consultation Portal** | ✅ (Ask Questions) | ✅ (Answer Queue) | ✅ (Oversight) |
-| **Expert Portal & Consultation Inbox** | ❌ | ✅ | ✅ |
-| **Admin Control Plane & User Directory** | ❌ | ❌ | ✅ |
-| **System Settings & Global Diagnostics** | ❌ | ❌ | ✅ |
-
-### Security Guarantees:
-1. **Admin Creation Restricted**: Registration API strictly forbids self-assigned `'admin'` role; only `'farmer'` and `'expert'` can register publicly.
-2. **Horizontal IDOR Protection**: Farmers can strictly view and edit only farms whose `owner` ObjectId matches `req.user._id`.
-3. **Route Guards**: `ProtectedRoute` on the frontend validates both token presence and role authorization, instantly redirecting unauthorized attempts back to the appropriate user portal.
-
----
-
-## 4. Comprehensive 15-Screen Route Mapping
-
-The following 15 functional screens constitute the AgriSense platform:
-
-| # | Screen Name | Route Path | Authorized Roles | Module Status |
-| :---: | :--- | :--- | :--- | :--- |
-| **01** | Landing Page | `/`, `/about`, `/features` | Public | **Completed (Phase 1 & 3)** |
-| **02** | Login & Registration | `/login`, `/register` | Public (Unauthenticated) | **Completed (Phase 2)** |
-| **03** | Farmer Dashboard | `/dashboard` | Farmer | **Completed (Phase 1 & Real Data)** |
-| **04** | My Farms Directory | `/dashboard/farms` | Farmer, Admin | **Completed (Phase 4)** |
-| **05** | Add Farm Registration | `/dashboard/farms/new`, `/dashboard/farms/add` | Farmer, Admin | **Completed (Phase 4)** |
-| **06** | Farm Details & Submodules | `/dashboard/farms/:id` | Farmer, Admin | **Completed (Phase 4)** |
-| **07** | Crop Management | `/dashboard/crops` | Farmer, Admin | Planned (Phase 5) |
-| **08** | Crop Telemetry Monitoring | `/dashboard/monitoring` | Farmer, Admin | Planned (Phase 6) |
-| **09** | Soil Analysis & Diagnostics | `/dashboard/soil-analysis` | Farmer, Admin | Planned (Phase 6) |
-| **10** | Smart Irrigation Control | `/dashboard/irrigation` | Farmer, Admin | Planned (Phase 7) |
-| **11** | Weather & Agro-Meteorology | `/dashboard/weather` | Farmer, Admin | Planned (Phase 7) |
-| **12** | AI Disease Detection | `/dashboard/disease-detection` | Farmer, Expert, Admin | Planned (Phase 8) |
-| **13** | Expert Consultation Hub | `/dashboard/consultation`, `/expert/consultations` | Farmer, Expert, Admin | Planned (Phase 8) |
-| **14** | Admin Management & Users | `/admin/dashboard`, `/admin/users`, `/admin/farms` | Admin Only | Architectural Shell |
-| **15** | Reports & System Settings | `/dashboard/reports`, `/dashboard/settings`, `/admin/settings` | Farmer, Admin | Architectural Shell |
-
----
-
-## 5. Data Models & Entity Relationships
+The platform organizes farmer activities into a sequential, dependent lifecycle journey:
 
 ```mermaid
-erDiagram
-    USER ||--o{ FARM : owns
-    USER ||--o{ CONSULTATION : initiates
-    EXPERT ||--o{ CONSULTATION : answers
-    FARM ||--o{ CROP : contains
-    CROP ||--o{ SOIL_READING : measures
-    CROP ||--o{ DISEASE_SCAN : diagnoses
-
-    USER {
-        ObjectId _id PK
-        string fullName
-        string email UK
-        string passwordHash
-        string phone
-        string role "farmer | expert | admin"
-        string location
-        boolean isActive
-        date createdAt
-    }
-
-    FARM {
-        ObjectId _id PK
-        ObjectId owner FK
-        string name
-        string location
-        string state
-        string district
-        string village
-        string pincode
-        number acreage
-        string soilType
-        string irrigationType
-        string[] mainCrops
-        string status "Active | Inactive | Archived"
-        date createdAt
-    }
-
-    CROP {
-        ObjectId _id PK
-        ObjectId farmId FK
-        string cropName
-        string variety
-        date sowingDate
-        string stage "Germination | Vegetative | Flowering | Harvesting"
-        number plannedAcreage
-        string status "Healthy | At Risk | Harvested"
-    }
-
-    CONSULTATION {
-        ObjectId _id PK
-        ObjectId farmerId FK
-        ObjectId expertId FK
-        ObjectId farmId FK
-        string subject
-        string question
-        string status "Pending | In Progress | Resolved"
-        string[] attachments
-        date createdAt
-    }
+flowchart TD
+    D["1. Dashboard (/dashboard)"] --> F["2. My Farms (/dashboard/farms)"]
+    F --> C["3. Crops (/dashboard/crops)"]
+    C --> CM["4. Crop Monitoring (/dashboard/monitoring)"]
+    CM --> SA["5. Soil Analysis (/dashboard/soil-analysis)"]
+    SA --> WA["6. Weather Advisory (/dashboard/weather)"]
+    WA --> SI["7. Smart Irrigation (/dashboard/irrigation)"]
+    SI --> AI["8. AI Disease Scan (/dashboard/disease-detection)"]
+    AI --> R["9. Reports (/dashboard/reports)"]
+    R --> N["10. Notifications (/dashboard/notifications)"]
+    N --> CO["11. Consultation (/dashboard/consultation)"]
 ```
+
+### Upstream and Downstream Data Dependencies:
+
+1. **Dashboard (`/dashboard`)**:
+   - Aggregates live metrics from registered farms, active crop stages, harvest countdowns, and system connectivity.
+2. **My Farms (`/dashboard/farms`)**:
+   - **Foundational Root Entity**: Every agricultural activity requires a registered farm parcel (`Farm` document in MongoDB).
+   - Captures acreage, soil type, irrigation setup, and geographic coordinates.
+3. **Crops (`/dashboard/crops`)**:
+   - **Prerequisite**: A crop record (`Crop` document) must belong to an existing farmer-owned farm (`farmId` foreign key).
+   - Tracks seed varieties, sowing dates, phenological growth stages (Germination through Harvest), and planned acreage.
+4. **Crop Monitoring (`/dashboard/monitoring`)**:
+   - **Prerequisite**: Requires registered crop records and field hardware sensors.
+   - Evaluates canopy vigor (NDVI/NDRE) and biomass stress curves against registered crops.
+5. **Soil Analysis (`/dashboard/soil-analysis`)**:
+   - **Prerequisite**: Associated with a specific farm parcel and crop soil zone.
+   - Evaluates underground telemetry (NPK, pH, depth moisture at 10cm, 30cm, 60cm).
+6. **Weather Advisory (`/dashboard/weather`)**:
+   - **Prerequisite**: Utilizes farm location coordinates (state, district, village, or GPS) to fetch hyper-local forecasts and spray-window warnings.
+7. **Smart Irrigation (`/dashboard/irrigation`)**:
+   - **Prerequisite**: Combines crop water coefficients, soil moisture readings, and meteorological rainfall forecasts to automate irrigation pump cycles.
+8. **AI Disease Scan (`/dashboard/disease-detection`)**:
+   - **Prerequisite**: Accepts authentic camera leaf uploads; diagnosis results attach to corresponding registered crop entities.
+9. **Reports (`/dashboard/reports`)**:
+   - **Prerequisite**: Aggregates historical harvest yields, input expenditures, and field performance over time.
+10. **Notifications (`/dashboard/notifications`)**:
+    - **Prerequisite**: Dispatched from real application events (sensor limit violations, storm warnings, agronomist consultation responses).
+11. **Consultation (`/dashboard/consultation`)**:
+    - **Prerequisite**: Connects verified farmers with accredited agronomy specialists, allowing leaf scan attachments and historical soil telemetry forwarding.
+
+> [!NOTE]
+> When optional telemetry or hardware data is unavailable, unrelated platform functionality remains fully operable without artificial blocks. Simulated or fake sensor connectivity is strictly prohibited.
 
 ---
 
-## 6. Implementation Phasing Strategy
+## 3. Restructured Sidebar Navigation Hierarchy
 
-- **Phase 1 (Completed)**: UI Foundation, Landing Page, Layouts, Design System.
-- **Phase 2 (Completed)**: Secure Authentication (bcrypt, JWT, auth routes, cookies, verification tests).
-- **Phase 3 (Completed)**: Visual Refresh, Authentic Agricultural Photography, Split-Screen Layouts.
-- **Phase 4 (Completed)**: Farm Management (Full CRUD, Mongoose schema, validation, IDOR protection, 10 backend tests).
-- **Current Alignment**:
-  - Unified dynamic navigation supporting Farmer, Expert, and Admin roles.
-  - Comprehensive RBAC route enforcement in React Router (`ProtectedRoute` with `allowedRoles`).
-  - Farmer Dashboard aggregated with real MongoDB metrics (farms count, total acreage, active farms).
-  - Cohesive design-system placeholders for future phases (Crops, Soil, Irrigation, AI, Expert Hub) ensuring zero broken links or 404s.
-- **Phase 5 (Next)**: Crop Management (Full CRUD, growth staging, planting calendars).
-- **Phase 6**: IoT Telemetry & Soil Health (Time-series data, NPK sensor ingestion, moisture thresholds).
-- **Phase 7**: Smart Irrigation Automation & OpenWeatherMap / IMD Weather Integration.
-- **Phase 8**: AI Crop Disease Detection (Leaf scan analysis, symptom severity, expert escalation).
-- **Phase 9**: Consultation Messenger & Notification Center.
-- **Phase 10**: Advanced Exportable PDF/CSV Reports and System Configuration.
+The sidebar is categorized into five distinct semantic groups with consistent styling, accessibility labels, and active route indicators:
 
+### 1. OVERVIEW
+- **Dashboard** (`/dashboard`): Central executive overview of all farmer parcels, active crop growth stages, and telemetry hardware status.
+
+### 2. FARM MANAGEMENT
+- **My Farms** (`/dashboard/farms`): Comprehensive directory of registered farm parcels with search, status filtering, sort, and CRUD actions.
+  *(Note: Duplicate "Live" navigation badge removed; farm parcels are distinguished from sensor telemetry streams).*
+- **Crops** (`/dashboard/crops`): Crop registration, phenological stage trackers, and harvest calendar.
+- **Crop Monitoring** (`/dashboard/monitoring`): Dedicated real-time vegetation indices and field camera feeds.
+
+### 3. PRECISION AGRICULTURE
+- **Soil Analysis** (`/dashboard/soil-analysis`): Underground sensor diagnostics (NPK, pH, electrical conductivity, moisture depth).
+- **Weather Advisory** (`/dashboard/weather`): Hyper-local micro-climate forecasts, frost alerts, and 7-day spray conditions.
+- **Smart Irrigation** (`/dashboard/irrigation`): Evapotranspiration-based automated watering schedules and valve solenoid controls.
+- **AI Disease Scan** (`/dashboard/disease-detection`): Computer-vision-powered leaf pathology scanner with severity grading.
+
+### 4. ACTIVITY & SUPPORT
+- **Reports** (`/dashboard/reports`): Exportable PDF/CSV seasonal audits, input vs. yield efficiency matrices.
+- **Notifications** (`/dashboard/notifications`): Threshold breach alarms, weather emergency notices, and agronomist updates.
+- **Consultation** (`/dashboard/consultation`): Structured inquiry portal linking farmers directly to agronomy extension experts.
+
+### 5. ACCOUNT & SESSION
+- **Settings** (`/dashboard/settings`): Alert thresholds, unit configurations, and integration webhooks.
+- **Profile** (`/dashboard/profile`): Farmer credentials, contact details, and location preferences.
+- **Landing Page** (`/`): Secondary external link back to the public homepage.
+- **Sign Out**: Clears JWT token and redirects safely to the login screen.
+
+---
+
+## 4. Comprehensive 15-Screen Route Mapping & Status
+
+| # | Screen Name | Route Path | Authorized Roles | Current Status | Notes |
+| :---: | :--- | :--- | :--- | :--- | :--- |
+| **01** | Landing Page | `/`, `/about`, `/features` | Public | **Fully Functional** | Responsive hero, authentic photography, feature showcases |
+| **02** | Login & Registration | `/login`, `/register` | Public (Unauthenticated) | **Fully Functional** | JWT auth, bcrypt hashing, role validation, duplicate protection |
+| **03** | Farmer Dashboard | `/dashboard` | Farmer, Admin | **Fully Functional** | Real MongoDB farm/crop stats, hardware status banner |
+| **04** | My Farms Directory | `/dashboard/farms` | Farmer, Admin | **Fully Functional** | Search, filter, sort, grid/list view, real MongoDB records |
+| **05** | Add Farm Registration | `/dashboard/farms/new`, `/dashboard/farms/add` | Farmer, Admin | **Fully Functional** | Acreage validation, soil type, irrigation, MongoDB persistence |
+| **06** | Farm Details & Submodules | `/dashboard/farms/:id` | Farmer, Admin | **Fully Functional** | Single-farm inspection, edit, and soft-archive controls |
+| **07** | Crop Management | `/dashboard/crops` | Farmer, Admin | **Partially Implemented** | Mongoose `Crop` model live, dashboard overview active, list page in progress |
+| **08** | Crop Telemetry Monitoring | `/dashboard/monitoring` | Farmer, Admin | **UI Placeholder** | Awaiting IoT hardware ingestion pipeline |
+| **09** | Soil Health & NPK | `/dashboard/soil-analysis` | Farmer, Admin | **UI Placeholder** | Sensor threshold schemas designed |
+| **10** | Smart Irrigation Control | `/dashboard/irrigation` | Farmer, Admin | **UI Placeholder** | Evapotranspiration formula integration planned |
+| **11** | Weather & Agro-Meteorology | `/dashboard/weather` | Farmer, Admin | **UI Placeholder** | OpenWeatherMap / IMD API integration planned |
+| **12** | AI Disease Detection | `/dashboard/disease-detection` | Farmer, Expert, Admin | **UI Placeholder** | Mobile image upload UI active, vision model planned |
+| **13** | Expert Consultation Hub | `/dashboard/consultation`, `/expert/consultations` | Farmer, Expert, Admin | **UI Placeholder** | Structured inquiry schema planned |
+| **14** | Admin Management & Users | `/admin/dashboard`, `/admin/users`, `/admin/farms` | Admin Only | **UI Placeholder** | User governance and oversight shells active |
+| **15** | Reports & System Settings | `/dashboard/reports`, `/dashboard/settings` | Farmer, Admin | **UI Placeholder** | PDF export and notification configs planned |
+
+---
+
+## 5. Responsive Sidebar Implementation
+
+1. **Collapsible Desktop Sidebar**:
+   - Full expanded view (`w-72`) displaying all group headings, item descriptions, and status cards.
+   - Compact collapsed view (`w-20`) displaying icon-only tooltips for maximum screen real estate.
+   - State persisted across sessions in browser `localStorage` (`agrisense_sidebar_collapsed`).
+   - Quick Action button transforms into an accessible centered `+` button in collapsed mode.
+2. **Mobile Handheld Drawer**:
+   - Slide-over backdrop drawer (`fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-xs`) triggered via hamburger menu.
+   - Smooth animated slide transition (`translate-x-0` / `-translate-x-full`).
+   - Automatically closes upon navigation link clicks.
+3. **Dynamic Top Navbar Breadcrumbs**:
+   - Automatically parses current React Router location to show breadcrumb traces (e.g., `Farm Management / My Farms / Add Farm`) and active page headings.
+   - Includes intuitive `ArrowLeft` back buttons on multi-step creation/edit subroutes.
+
+---
+
+## 6. Role-Based Access Control (RBAC) Architecture
+
+```mermaid
+graph TD
+    User([User Request]) --> Guard{ProtectedRoute}
+    Guard -->|Unauthenticated| Login[/login]
+    Guard -->|Role: Farmer| FarmerPortal["/dashboard/* (Farmer Portal)"]
+    Guard -->|Role: Expert| ExpertPortal["/expert/* (Expert Portal)"]
+    Guard -->|Role: Admin| AdminPortal["/admin/* (Admin Suite)"]
+
+    FarmerPortal -.->|Blocked| ExpertPortal
+    FarmerPortal -.->|Blocked| AdminPortal
+    ExpertPortal -.->|Blocked| AdminPortal
+```
+
+- **Strict Isolation**: Farmers can access only their own farm and crop documents (IDOR protection on all `/api/farms` and `/api/dashboard` routes).
+- **No Self-Assigned Admins**: Public registration forbids `'admin'`; only `'farmer'` and `'expert'` roles can be registered from the client.
+- **Fast Session Recovery**: Expired or invalid JWT tokens redirect cleanly to `/login` without application crashes.

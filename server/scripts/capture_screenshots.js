@@ -92,42 +92,62 @@ async function capture() {
       `,
     });
 
+    // 1. Desktop View of Farmer Dashboard with Restructured Sidebar
     console.log('4. Navigating to Farmer Dashboard...');
     await send('Page.navigate', { url: 'http://localhost:5173/dashboard' });
     await sleep(2500);
 
-    // A. Desktop Screenshot (1440x1600)
-    console.log('5. Capturing desktop screenshot (1440x1600)...');
+    console.log('5. Capturing desktop sidebar & dashboard (1440x1200)...');
     await send('Emulation.setDeviceMetricsOverride', {
       width: 1440,
-      height: 1600,
+      height: 1200,
       deviceScaleFactor: 1,
       mobile: false,
     });
-    await sleep(1000);
+    await sleep(1200);
 
     const desktopCapture = await send('Page.captureScreenshot', { format: 'png' });
-    const desktopPath = path.join(ARTIFACT_DIR, 'farmer_dashboard_phase3_desktop.png');
+    const desktopPath = path.join(ARTIFACT_DIR, 'farmer_workflow_sidebar_desktop.png');
     fs.writeFileSync(desktopPath, Buffer.from(desktopCapture.data, 'base64'));
-    console.log('Saved desktop screenshot to:', desktopPath);
+    console.log('Saved desktop sidebar screenshot to:', desktopPath);
 
-    // B. Mobile Screenshot (390x1500 - iPhone 14 style)
-    console.log('6. Capturing mobile screenshot (390x1500)...');
+    // 2. Desktop View of Crop Monitoring (showing dynamic breadcrumbs & module status)
+    console.log('6. Navigating to Crop Monitoring...');
+    await send('Page.navigate', { url: 'http://localhost:5173/dashboard/monitoring' });
+    await sleep(2000);
+
+    const monitoringCapture = await send('Page.captureScreenshot', { format: 'png' });
+    const monitoringPath = path.join(ARTIFACT_DIR, 'farmer_workflow_monitoring_desktop.png');
+    fs.writeFileSync(monitoringPath, Buffer.from(monitoringCapture.data, 'base64'));
+    console.log('Saved crop monitoring screenshot to:', monitoringPath);
+
+    // 3. Mobile View (390x844) with Open Drawer
+    console.log('7. Setting mobile viewport and opening sidebar drawer...');
+    await send('Page.navigate', { url: 'http://localhost:5173/dashboard' });
     await send('Emulation.setDeviceMetricsOverride', {
       width: 390,
-      height: 1500,
+      height: 844,
       deviceScaleFactor: 2,
       mobile: true,
     });
-    await sleep(1000);
+    await sleep(1500);
 
-    const mobileCapture = await send('Page.captureScreenshot', { format: 'png' });
-    const mobilePath = path.join(ARTIFACT_DIR, 'farmer_dashboard_phase3_mobile.png');
-    fs.writeFileSync(mobilePath, Buffer.from(mobileCapture.data, 'base64'));
-    console.log('Saved mobile screenshot to:', mobilePath);
+    // Open mobile sidebar by clicking hamburger
+    await send('Runtime.evaluate', {
+      expression: `
+        const btn = document.querySelector('button[aria-label="Open navigation drawer"]') || document.querySelector('button[aria-label="Open sidebar"]');
+        if (btn) btn.click();
+      `,
+    });
+    await sleep(800);
+
+    const mobileDrawerCapture = await send('Page.captureScreenshot', { format: 'png' });
+    const mobileDrawerPath = path.join(ARTIFACT_DIR, 'farmer_workflow_mobile_drawer.png');
+    fs.writeFileSync(mobileDrawerPath, Buffer.from(mobileDrawerCapture.data, 'base64'));
+    console.log('Saved mobile drawer screenshot to:', mobileDrawerPath);
 
     ws.close();
-    console.log('Screenshots captured successfully!');
+    console.log('All screenshots captured successfully!');
   } finally {
     chromeProcess.kill();
   }

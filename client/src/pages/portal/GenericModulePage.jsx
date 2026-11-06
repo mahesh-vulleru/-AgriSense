@@ -23,7 +23,10 @@ const moduleConfigs = {
     title: 'Crop Management',
     subtitle: 'Track sowing calendars, phenological growth stages, expected harvest yields, and crop rotation schedules.',
     category: 'Crop Science',
-    phase: 'Phase 5 Scheduled',
+    phase: 'Phase 5 Core',
+    status: 'Partially Implemented',
+    journeyStep: 'Step 3 of 11 in Farmer Journey',
+    prerequisite: 'A crop parcel must belong to an existing farmer-owned registered farm.',
     icon: Sprout,
     features: [
       { title: 'Crop Life Cycle Tracking', desc: 'Monitor seed germination, tillering, vegetative, flowering, and maturity stages.' },
@@ -32,10 +35,13 @@ const moduleConfigs = {
     ],
   },
   '/dashboard/monitoring': {
-    title: 'Precision Crop Telemetry',
+    title: 'Crop Telemetry & Sensor Monitoring',
     subtitle: 'Real-time multi-spectral vegetation indices (NDVI, NDRE) and drone sensor overlays.',
     category: 'IoT Telemetry',
     phase: 'Phase 6 Integration',
+    status: 'UI Placeholder',
+    journeyStep: 'Step 4 of 11 in Farmer Journey',
+    prerequisite: 'Crop Monitoring strictly requires registered crop records and connected field telemetry sensors.',
     icon: Activity,
     features: [
       { title: 'NDVI Canopy Vigor', desc: 'Continuously calculate normalized difference vegetation index from drone imagery.' },
@@ -48,6 +54,9 @@ const moduleConfigs = {
     subtitle: 'Continuous underground sensor tracking for soil moisture, temperature, electrical conductivity, and N-P-K nutrient profiles.',
     category: 'Soil Science',
     phase: 'Phase 6 Integration',
+    status: 'UI Placeholder',
+    journeyStep: 'Step 5 of 11 in Farmer Journey',
+    prerequisite: 'Soil Analysis must be associated with a registered farm parcel and relevant crop planting zone.',
     icon: Layers,
     features: [
       { title: 'Continuous NPK Sensing', desc: 'Telemetry tracking Nitrogen, Phosphorus, and Potassium levels in root zones.' },
@@ -55,23 +64,14 @@ const moduleConfigs = {
       { title: 'pH & Salinity Alerts', desc: 'Early warning when soil acidity drifts outside optimal crop absorption thresholds.' },
     ],
   },
-  '/dashboard/irrigation': {
-    title: 'Smart Automated Irrigation',
-    subtitle: 'Evapo-transpiration based dynamic watering schedules and IoT valve automation.',
-    category: 'Water Conservation',
-    phase: 'Phase 7 Integration',
-    icon: Droplets,
-    features: [
-      { title: 'Dynamic Run-Time Scheduling', desc: 'Automate pump cycle run-times based on soil moisture and ambient temperature.' },
-      { title: 'Sector Valve Control', desc: 'Selectively activate drip or sprinkler solenoids in sectors needing water.' },
-      { title: 'Water Consumption Metrics', desc: 'Quantify kiloliters saved through precision timing vs conventional flood methods.' },
-    ],
-  },
   '/dashboard/weather': {
     title: 'Agro-Meteorology & Weather Alerts',
     subtitle: 'Hyper-local micro-climate forecasts with proactive alerts for frost, heavy rainfall, and heat stress.',
     category: 'Climate Intelligence',
     phase: 'Phase 7 Integration',
+    status: 'UI Placeholder',
+    journeyStep: 'Step 6 of 11 in Farmer Journey',
+    prerequisite: 'Weather Advisory requires GPS coordinates or district location from your registered farms.',
     icon: CloudSun,
     features: [
       { title: '7-Day Spray Forecast', desc: 'Identify optimal wind and moisture windows for foliar nutrition and pest defense.' },
@@ -79,11 +79,29 @@ const moduleConfigs = {
       { title: 'Degree-Day Heat Units', desc: 'Accumulated Growing Degree Days (GDD) to predict pest emergence dates.' },
     ],
   },
+  '/dashboard/irrigation': {
+    title: 'Smart Automated Irrigation',
+    subtitle: 'Evapo-transpiration based dynamic watering schedules and IoT valve automation.',
+    category: 'Water Conservation',
+    phase: 'Phase 7 Integration',
+    status: 'UI Placeholder',
+    journeyStep: 'Step 7 of 11 in Farmer Journey',
+    prerequisite: 'Smart Irrigation combines crop water coefficients, real-time soil moisture, and meteorological rainfall forecasts.',
+    icon: Droplets,
+    features: [
+      { title: 'Dynamic Run-Time Scheduling', desc: 'Automate pump cycle run-times based on soil moisture and ambient temperature.' },
+      { title: 'Sector Valve Control', desc: 'Selectively activate drip or sprinkler solenoids in sectors needing water.' },
+      { title: 'Water Consumption Metrics', desc: 'Quantify kiloliters saved through precision timing vs conventional flood methods.' },
+    ],
+  },
   '/dashboard/disease-detection': {
     title: 'AI Crop Disease Scanner',
     subtitle: 'Computer vision diagnostics for leaf symptom analysis, fungal rust, blight, and pest identification.',
     category: 'Computer Vision & AI',
     phase: 'Phase 8 Integration',
+    status: 'UI Placeholder',
+    journeyStep: 'Step 8 of 11 in Farmer Journey',
+    prerequisite: 'AI Disease Scan accepts authentic crop leaf photographs and links detections to registered crops.',
     icon: ScanEye,
     features: [
       { title: 'Instant Mobile Leaf Scan', desc: 'Upload or capture leaf images with automated focal point isolation.' },
@@ -96,6 +114,9 @@ const moduleConfigs = {
     subtitle: 'Comprehensive seasonal audit reports, input cost tracking, and exportable compliance documentation.',
     category: 'Intelligence & Compliance',
     phase: 'Phase 10 Integration',
+    status: 'UI Placeholder',
+    journeyStep: 'Step 9 of 11 in Farmer Journey',
+    prerequisite: 'Reports calculate real metrics using historical harvest data, farm sizes, and input logs.',
     icon: BarChart3,
     features: [
       { title: 'PDF / CSV Yield Export', desc: 'Generate multi-field summary reports for banks, insurers, and buyers.' },
@@ -108,6 +129,9 @@ const moduleConfigs = {
     subtitle: 'Centralized alerts for sensor threshold breaches, task reminders, and government scheme updates.',
     category: 'Communication Hub',
     phase: 'Phase 9 Integration',
+    status: 'UI Placeholder',
+    journeyStep: 'Step 10 of 11 in Farmer Journey',
+    prerequisite: 'Notifications originate from real system triggers, telemetry threshold violations, and expert messages.',
     icon: Bell,
     features: [
       { title: 'Real-Time Sensor Breaches', desc: 'Alerts when soil moisture or ambient temperature drops below trigger levels.' },
@@ -116,10 +140,13 @@ const moduleConfigs = {
     ],
   },
   '/dashboard/consultation': {
-    title: 'Expert Consultation Portal',
+    title: 'Expert Consultation Hub',
     subtitle: 'Direct dialogue with agricultural extension specialists, soil scientists, and certified agronomists.',
     category: 'Expert Network',
     phase: 'Phase 8 Integration',
+    status: 'UI Placeholder',
+    journeyStep: 'Step 11 of 11 in Farmer Journey',
+    prerequisite: 'Consultation connects verified farmers with certified agronomy specialists.',
     icon: MessageSquare,
     features: [
       { title: 'Structured Question Builder', desc: 'Attach crop type, sowing date, recent photos, and soil readings to every question.' },
@@ -132,6 +159,7 @@ const moduleConfigs = {
     subtitle: 'Personal profile, primary contact details, farming experience, and communication preferences.',
     category: 'Account Center',
     phase: 'Phase 2 Account Management',
+    status: 'UI Placeholder',
     icon: User,
     features: [
       { title: 'Contact & Location Management', desc: 'Update village, district, state, and primary telephone contact.' },
@@ -144,6 +172,7 @@ const moduleConfigs = {
     subtitle: 'Manage sensor calibration offsets, notification delivery frequencies, and farm boundary units.',
     category: 'Configuration',
     phase: 'Phase 10 Integration',
+    status: 'UI Placeholder',
     icon: Settings,
     features: [
       { title: 'Sensor Threshold Boundaries', desc: 'Fine-tune minimum and maximum soil moisture and temperature alarm trip points.' },
@@ -338,6 +367,9 @@ export const GenericModulePage = () => {
       subtitle={config.subtitle}
       category={config.category}
       phase={config.phase}
+      status={config.status}
+      journeyStep={config.journeyStep}
+      prerequisite={config.prerequisite}
       icon={config.icon}
       features={config.features}
       returnPath={returnPath}

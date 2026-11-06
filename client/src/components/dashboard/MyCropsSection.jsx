@@ -35,15 +35,19 @@ import Badge from '../common/Badge.jsx';
  * Defines sequence order (1-9), progress percentage, and UI accent styling.
  */
 const GROWTH_STAGE_CONFIG = {
-  'Land Preparation': { step: 1, percent: 11, color: '#64748B', badgeVariant: 'neutral' },
-  'Sowing': { step: 2, percent: 22, color: '#D97706', badgeVariant: 'warning' },
-  'Germination': { step: 3, percent: 33, color: '#84CC16', badgeVariant: 'success' },
-  'Seedling': { step: 4, percent: 45, color: '#22C55E', badgeVariant: 'success' },
-  'Vegetative Growth': { step: 5, percent: 60, color: '#166534', badgeVariant: 'forest' },
-  'Flowering': { step: 6, percent: 75, color: '#8B5CF6', badgeVariant: 'info' },
-  'Fruiting': { step: 7, percent: 85, color: '#EA580C', badgeVariant: 'warning' },
-  'Maturity': { step: 8, percent: 95, color: '#D97706', badgeVariant: 'warning' },
-  'Harvested': { step: 9, percent: 100, color: '#0284C7', badgeVariant: 'info' },
+  'Land Preparation': { step: 1, percent: 9, color: '#64748B', badgeVariant: 'neutral' },
+  'Sowing / Planting': { step: 2, percent: 18, color: '#D97706', badgeVariant: 'warning' },
+  'Sowing': { step: 2, percent: 18, color: '#D97706', badgeVariant: 'warning' },
+  'Germination': { step: 3, percent: 27, color: '#84CC16', badgeVariant: 'success' },
+  'Seedling': { step: 4, percent: 36, color: '#22C55E', badgeVariant: 'success' },
+  'Vegetative Growth': { step: 5, percent: 45, color: '#166534', badgeVariant: 'forest' },
+  'Tillering / Branching': { step: 6, percent: 55, color: '#0D9488', badgeVariant: 'forest' },
+  'Flowering': { step: 7, percent: 64, color: '#8B5CF6', badgeVariant: 'info' },
+  'Fruiting / Grain Formation': { step: 8, percent: 73, color: '#EA580C', badgeVariant: 'warning' },
+  'Fruiting': { step: 8, percent: 73, color: '#EA580C', badgeVariant: 'warning' },
+  'Maturity': { step: 9, percent: 82, color: '#D97706', badgeVariant: 'warning' },
+  'Harvesting': { step: 10, percent: 91, color: '#F59E0B', badgeVariant: 'warning' },
+  'Harvested': { step: 11, percent: 100, color: '#0284C7', badgeVariant: 'info' },
 };
 
 export const MyCropsSection = ({
@@ -637,7 +641,7 @@ export const MyCropsSection = ({
                   <div className="p-3 bg-[#F7F9F5]/80 rounded-xl border border-slate-100 mb-3.5">
                     <div className="flex items-center justify-between text-[11px] mb-1.5">
                       <span className="font-semibold text-slate-500">
-                        Growth Stage ({stageConfig.step}/9)
+                        Growth Stage ({stageConfig.step}/11)
                       </span>
                       <Badge size="sm" variant={stageConfig.badgeVariant}>
                         {crop.growthStage}

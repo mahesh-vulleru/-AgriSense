@@ -9,6 +9,10 @@ import AddFarmPage from '../pages/farms/AddFarmPage.jsx';
 import FarmDetailsPage from '../pages/farms/FarmDetailsPage.jsx';
 import EditFarmPage from '../pages/farms/EditFarmPage.jsx';
 import WeatherAdvisoryPage from '../pages/weather/WeatherAdvisoryPage.jsx';
+import CropsListPage from '../pages/crops/CropsListPage.jsx';
+import AddCropPage from '../pages/crops/AddCropPage.jsx';
+import CropDetailsPage from '../pages/crops/CropDetailsPage.jsx';
+import EditCropPage from '../pages/crops/EditCropPage.jsx';
 import NotFoundPage from '../pages/NotFoundPage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import PublicRoute from './PublicRoute.jsx';
@@ -63,11 +67,11 @@ export const AppRoutes = () => {
         <Route path="farms/:id/edit" element={<EditFarmPage />} />
 
         {/* Crop Management Routes */}
-        <Route path="crops" element={<GenericModulePage />} />
-        <Route path="crops/new" element={<GenericModulePage />} />
-        <Route path="crops/add" element={<GenericModulePage />} />
-        <Route path="crops/:id" element={<GenericModulePage />} />
-        <Route path="crops/:id/edit" element={<GenericModulePage />} />
+        <Route path="crops" element={<CropsListPage />} />
+        <Route path="crops/new" element={<AddCropPage />} />
+        <Route path="crops/add" element={<AddCropPage />} />
+        <Route path="crops/:id" element={<CropDetailsPage />} />
+        <Route path="crops/:id/edit" element={<EditCropPage />} />
 
         {/* Agricultural Precision Modules */}
         <Route path="monitoring" element={<GenericModulePage />} />

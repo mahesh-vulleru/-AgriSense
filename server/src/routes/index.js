@@ -4,6 +4,7 @@ import authRoutes from './authRoutes.js';
 import farmRoutes from './farmRoutes.js';
 import dashboardRoutes from './dashboardRoutes.js';
 import weatherRoutes from './weatherRoutes.js';
+import cropRoutes from './cropRoutes.js';
 
 const router = Router();
 
@@ -21,6 +22,9 @@ router.use('/dashboard', dashboardRoutes);
 
 // Mount weather advisory routes under /api/weather
 router.use('/weather', weatherRoutes);
+
+// Mount crop management & lifecycle routes under /api/crops
+router.use('/crops', cropRoutes);
 
 // Root /api information endpoint
 router.get('/', (req, res) => {

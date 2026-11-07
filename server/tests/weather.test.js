@@ -134,7 +134,6 @@ describe('AgriSense OpenWeather Integration & Advisory Module Test Suite', () =>
     if (server) {
       await new Promise((resolve) => server.close(resolve));
     }
-    await mongoose.disconnect();
   });
 
   // =========================================================================

@@ -37,7 +37,6 @@ describe('AgriSense Phase 2 - Authentication & Authorization Test Suite', () => 
     if (server) {
       await new Promise((resolve) => server.close(resolve));
     }
-    await mongoose.disconnect();
   });
 
   // 1. Successful Registration

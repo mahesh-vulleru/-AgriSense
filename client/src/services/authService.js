@@ -2,7 +2,11 @@ import apiClient, {
   setStoredToken,
   removeStoredToken,
   getStoredToken,
+  getStoredUser,
+  setStoredUser,
 } from './api.js';
+
+let currentUserPromise = null;
 
 export const authService = {
   /**
@@ -11,9 +15,12 @@ export const authService = {
    */
   async login({ email, password, rememberMe = true }) {
     const response = await apiClient.post('/auth/login', { email, password });
-    const { token } = response.data;
+    const { token, user } = response.data;
     if (token) {
       setStoredToken(token, rememberMe);
+    }
+    if (user) {
+      setStoredUser(user, rememberMe);
     }
     return response.data;
   },
@@ -24,19 +31,39 @@ export const authService = {
    */
   async register(formData) {
     const response = await apiClient.post('/auth/register', formData);
-    const { token } = response.data;
+    const { token, user } = response.data;
     if (token) {
       setStoredToken(token, true);
+    }
+    if (user) {
+      setStoredUser(user, true);
     }
     return response.data;
   },
 
   /**
-   * Retrieve current user profile using active token
+   * Retrieve current user profile using active token (deduplicated)
    */
   async getCurrentUser() {
-    const response = await apiClient.get('/auth/me');
-    return response.data;
+    if (currentUserPromise) {
+      return currentUserPromise;
+    }
+
+    currentUserPromise = apiClient
+      .get('/auth/me')
+      .then((response) => {
+        currentUserPromise = null;
+        if (response.data?.user) {
+          setStoredUser(response.data.user);
+        }
+        return response.data;
+      })
+      .catch((error) => {
+        currentUserPromise = null;
+        throw error;
+      });
+
+    return currentUserPromise;
   },
 
   /**
@@ -51,6 +78,13 @@ export const authService = {
    */
   hasStoredToken() {
     return Boolean(getStoredToken());
+  },
+
+  /**
+   * Get cached user profile
+   */
+  getCachedUser() {
+    return getStoredUser();
   },
 };
 

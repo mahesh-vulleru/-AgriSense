@@ -1,22 +1,27 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { AuthContext } from './authContextInstance.js';
 import authService from '../services/authService.js';
 import { getStoredToken } from '../services/api.js';
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(() => getStoredToken());
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(() => Boolean(getStoredToken()));
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const initialToken = getStoredToken();
+  const cachedUser = initialToken ? authService.getCachedUser() : null;
+
+  const [token, setToken] = useState(() => initialToken);
+  const [user, setUser] = useState(() => cachedUser);
+  // If we already have stored token and cached user, don't block the UI with loading skeleton
+  const [loading, setLoading] = useState(() => Boolean(initialToken && !cachedUser));
+  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(initialToken));
   const [error, setError] = useState(null);
 
-  // Initialize and hydrate authentication session on initial load
+  // Initialize and verify authentication session on initial load
   useEffect(() => {
     let isMounted = true;
 
     const initAuth = async () => {
       const currentToken = getStoredToken();
       if (!currentToken) {
+        if (isMounted) setLoading(false);
         return;
       }
 
@@ -27,8 +32,9 @@ export const AuthProvider = ({ children }) => {
           setToken(currentToken);
           setIsAuthenticated(true);
         }
-      } catch {
-        if (isMounted) {
+      } catch (err) {
+        // Only clear authentication if it's an unauthorized error (401)
+        if (isMounted && (err?.status === 401 || err?.response?.status === 401)) {
           authService.logout();
           setUser(null);
           setToken(null);
@@ -65,11 +71,13 @@ export const AuthProvider = ({ children }) => {
         setToken(currentToken);
         setIsAuthenticated(true);
       }
-    } catch {
-      authService.logout();
-      setUser(null);
-      setToken(null);
-      setIsAuthenticated(false);
+    } catch (err) {
+      if (err?.status === 401 || err?.response?.status === 401) {
+        authService.logout();
+        setUser(null);
+        setToken(null);
+        setIsAuthenticated(false);
+      }
     }
   }, []);
 
@@ -114,17 +122,20 @@ export const AuthProvider = ({ children }) => {
     setError(null);
   }, []);
 
-  const value = {
-    user,
-    token,
-    isAuthenticated,
-    loading,
-    error,
-    login,
-    register,
-    logout,
-    refreshUser,
-  };
+  const value = useMemo(
+    () => ({
+      user,
+      token,
+      isAuthenticated,
+      loading,
+      error,
+      login,
+      register,
+      logout,
+      refreshUser,
+    }),
+    [user, token, isAuthenticated, loading, error, logout, refreshUser]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

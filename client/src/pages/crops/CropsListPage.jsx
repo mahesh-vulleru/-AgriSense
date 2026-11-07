@@ -15,13 +15,13 @@ import {
   AlertTriangle,
   ExternalLink,
   Edit,
-  X,
   Layers,
 } from 'lucide-react';
 import cropService from '../../services/cropService.js';
 import farmService from '../../services/farmService.js';
 import Button from '../../components/common/Button.jsx';
 import Badge from '../../components/common/Badge.jsx';
+import Modal from '../../components/common/Modal.jsx';
 import {
   GROWTH_STAGES,
   STAGE_CONFIG,
@@ -63,8 +63,6 @@ export default function CropsListPage() {
 
   // Load Crops and Farms
   const loadCropsAndFarms = useCallback(async () => {
-    setLoading(true);
-    setError(null);
     try {
       const [cropsRes, farmsRes] = await Promise.allSettled([
         cropService.getCrops(),
@@ -92,39 +90,32 @@ export default function CropsListPage() {
   }, []);
 
   useEffect(() => {
-    let active = true;
-    const fetchInitial = async () => {
+    let isSubscribed = true;
+    async function init() {
       try {
         const [cropsRes, farmsRes] = await Promise.allSettled([
           cropService.getCrops(),
           farmService.getFarms(),
         ]);
-
-        if (!active) return;
-
+        if (!isSubscribed) return;
         if (cropsRes.status === 'fulfilled' && cropsRes.value.success) {
           setCrops(cropsRes.value.crops || []);
           if (cropsRes.value.summary) {
             setSummary(cropsRes.value.summary);
           }
-        } else if (cropsRes.status === 'rejected') {
-          setError(cropsRes.reason?.response?.data?.message || 'Failed to load crops');
         }
-
         if (farmsRes.status === 'fulfilled' && farmsRes.value.success) {
           setFarms(farmsRes.value.farms || []);
         }
       } catch (err) {
-        if (active) setError(err.message || 'Error connecting to crops API');
+        if (isSubscribed) setError(err.message || 'Error connecting to crops API');
       } finally {
-        if (active) setLoading(false);
+        if (isSubscribed) setLoading(false);
       }
-    };
-
-    fetchInitial();
-
+    }
+    init();
     return () => {
-      active = false;
+      isSubscribed = false;
     };
   }, []);
 
@@ -906,92 +897,74 @@ export default function CropsListPage() {
       )}
 
       {/* 11. Quick Stage Update Modal */}
-      {stageModalCrop && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#DCFCE7] text-[#166534]">
-                  <Sprout className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-[#17251B]">
-                    Update Crop Growth Stage
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    {stageModalCrop.name} ({stageModalCrop.variety || 'Standard'})
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setStageModalCrop(null)}
-                className="text-slate-400 hover:text-slate-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleStageUpdateSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Select New Growth Stage (11 Lifecycle Stages)
-                </label>
-                <select
-                  value={newStage}
-                  onChange={(e) => setNewStage(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
-                  required
-                >
-                  {GROWTH_STAGES.map((stage, idx) => (
-                    <option key={stage} value={stage}>
-                      Stage {idx + 1}: {stage}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Transitioning to &quot;Harvested&quot; will automatically update crop status to Harvested.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Agronomic Transition Notes / Observations (Optional)
-                </label>
-                <textarea
-                  value={stageNotes}
-                  onChange={(e) => setStageNotes(e.target.value)}
-                  placeholder="e.g. 80% canopy coverage achieved, healthy green leaf index, no pest infestations observed..."
-                  rows={3}
-                  className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setStageModalCrop(null)}
-                  disabled={updatingStage}
-                  className="text-xs bg-white"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="sm"
-                  disabled={updatingStage}
-                  className="text-xs shadow-xs"
-                >
-                  {updatingStage ? 'Saving...' : 'Record Stage Transition'}
-                </Button>
-              </div>
-            </form>
+      <Modal
+        isOpen={Boolean(stageModalCrop)}
+        onClose={() => setStageModalCrop(null)}
+        title="Update Crop Growth Stage"
+        subtitle={
+          stageModalCrop
+            ? `${stageModalCrop.name} (${stageModalCrop.variety || 'Standard'})`
+            : ''
+        }
+      >
+        <form onSubmit={handleStageUpdateSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Select New Growth Stage (11 Lifecycle Stages)
+            </label>
+            <select
+              value={newStage}
+              onChange={(e) => setNewStage(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
+              required
+            >
+              {GROWTH_STAGES.map((stage, idx) => (
+                <option key={stage} value={stage}>
+                  Stage {idx + 1}: {stage}
+                </option>
+              ))}
+            </select>
+            <p className="text-[11px] text-slate-400 mt-1">
+              Transitioning to &quot;Harvested&quot; will automatically update crop status to Harvested.
+            </p>
           </div>
-        </div>
-      )}
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Agronomic Transition Notes / Observations (Optional)
+            </label>
+            <textarea
+              value={stageNotes}
+              onChange={(e) => setStageNotes(e.target.value)}
+              placeholder="e.g. 80% canopy coverage achieved, healthy green leaf index, no pest infestations observed..."
+              rows={3}
+              className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setStageModalCrop(null)}
+              disabled={updatingStage}
+              className="text-xs bg-white"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={updatingStage}
+              className="text-xs shadow-xs"
+            >
+              {updatingStage ? 'Saving...' : 'Record Stage Transition'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

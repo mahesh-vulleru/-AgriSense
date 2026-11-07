@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import path from 'path';
 import { env } from './config/env.js';
 import apiRoutes from './routes/index.js';
 import { notFound } from './middleware/notFound.js';
@@ -31,9 +32,12 @@ app.use(
   })
 );
 
-// Built-in body parsers
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Built-in body parsers with 10MB capacity for crop monitoring photos
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Static file serving for uploaded crop photos
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Request logging in development
 if (env.NODE_ENV === 'development') {

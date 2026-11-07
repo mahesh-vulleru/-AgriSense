@@ -13,6 +13,7 @@ import CropsListPage from '../pages/crops/CropsListPage.jsx';
 import AddCropPage from '../pages/crops/AddCropPage.jsx';
 import CropDetailsPage from '../pages/crops/CropDetailsPage.jsx';
 import EditCropPage from '../pages/crops/EditCropPage.jsx';
+import CropMonitoringPage from '../pages/monitoring/CropMonitoringPage.jsx';
 import NotFoundPage from '../pages/NotFoundPage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import PublicRoute from './PublicRoute.jsx';
@@ -74,7 +75,7 @@ export const AppRoutes = () => {
         <Route path="crops/:id/edit" element={<EditCropPage />} />
 
         {/* Agricultural Precision Modules */}
-        <Route path="monitoring" element={<GenericModulePage />} />
+        <Route path="monitoring" element={<CropMonitoringPage />} />
         <Route path="soil-analysis" element={<GenericModulePage />} />
         <Route path="irrigation" element={<GenericModulePage />} />
         <Route path="weather" element={<WeatherAdvisoryPage />} />

@@ -114,11 +114,31 @@ export const TopNavbar = ({ onOpenSidebar, isCollapsed = false, onToggleCollapse
         canGoBack: true,
       };
     }
+    if (pathname.startsWith('/dashboard/crops/') && pathname.endsWith('/edit')) {
+      return {
+        group: 'Farm Management',
+        parentPath: '/dashboard/crops',
+        parentLabel: 'Crops',
+        page: 'Edit Crop',
+        title: 'Edit Crop Profile',
+        canGoBack: true,
+      };
+    }
+    if (pathname.startsWith('/dashboard/crops/') && pathname.split('/').length === 4) {
+      return {
+        group: 'Farm Management',
+        parentPath: '/dashboard/crops',
+        parentLabel: 'Crops',
+        page: 'Crop Details',
+        title: 'Phenological Lifecycle & Crop Details',
+        canGoBack: true,
+      };
+    }
     if (pathname === '/dashboard/monitoring') {
       return {
         group: 'Farm Management',
         page: 'Crop Monitoring',
-        title: 'Precision Crop Telemetry',
+        title: 'Precision Crop Health & Telemetry',
         canGoBack: false,
       };
     }
@@ -377,8 +397,7 @@ export const TopNavbar = ({ onOpenSidebar, isCollapsed = false, onToggleCollapse
         >
           <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
           <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#22C55E] opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#166534]" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#22C55E] ring-2 ring-white" />
           </span>
         </Link>
 

@@ -115,7 +115,6 @@ describe('AgriSense Phase 5 - Crop Management & Lifecycle Test Suite', () => {
     if (server) {
       await new Promise((resolve) => server.close(resolve));
     }
-    await mongoose.disconnect();
   });
 
   it('1. Should reject unauthenticated requests to /api/crops with 401', async () => {

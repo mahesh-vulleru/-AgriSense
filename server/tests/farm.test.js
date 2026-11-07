@@ -71,7 +71,6 @@ describe('AgriSense Phase 4 - Farm Management Test Suite', () => {
     if (server) {
       await new Promise((resolve) => server.close(resolve));
     }
-    await mongoose.disconnect();
   });
 
   // 1. Create Farm Successfully

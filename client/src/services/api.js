@@ -18,6 +18,27 @@ export const setStoredToken = (token, rememberMe = true) => {
   }
 };
 
+export const getStoredUser = () => {
+  try {
+    const raw = localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const setStoredUser = (user, rememberMe = true) => {
+  if (!user) return;
+  const serialized = JSON.stringify(user);
+  if (rememberMe) {
+    localStorage.setItem(USER_KEY, serialized);
+    sessionStorage.removeItem(USER_KEY);
+  } else {
+    sessionStorage.setItem(USER_KEY, serialized);
+    localStorage.removeItem(USER_KEY);
+  }
+};
+
 export const removeStoredToken = () => {
   localStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(TOKEN_KEY);

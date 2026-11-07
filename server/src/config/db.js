@@ -27,6 +27,10 @@ export const isDBConnected = () => {
  * Initialize MongoDB connection with automatic fallback
  */
 export const connectDB = async () => {
+  if (isDBConnected()) {
+    return mongoose.connection;
+  }
+
   const primaryUri = env.MONGODB_URI;
   const localFallbackUri = env.MONGODB_LOCAL_URI || 'mongodb://127.0.0.1:27017/agrisense';
 

@@ -32,6 +32,14 @@ export const CANONICAL_GROWTH_STAGES = [
 
 export const CROP_STATUSES = ['Active', 'Harvested', 'Archived'];
 
+export const HEALTH_STATUSES = [
+  'Healthy',
+  'Normal',
+  'Needs Attention',
+  'At Risk',
+  'Critical',
+];
+
 export const CROP_CATEGORIES = [
   'Cereal',
   'Pulses',
@@ -252,6 +260,19 @@ const cropSchema = new mongoose.Schema(
       },
       default: 'Active',
       index: true,
+    },
+    healthStatus: {
+      type: String,
+      enum: {
+        values: HEALTH_STATUSES,
+        message: 'Invalid crop health status specified',
+      },
+      default: 'Healthy',
+      index: true,
+    },
+    lastAssessmentDate: {
+      type: Date,
+      default: null,
     },
     notes: {
       type: String,

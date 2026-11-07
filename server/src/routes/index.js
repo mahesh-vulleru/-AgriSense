@@ -6,6 +6,7 @@ import dashboardRoutes from './dashboardRoutes.js';
 import weatherRoutes from './weatherRoutes.js';
 import cropRoutes from './cropRoutes.js';
 import monitoringRoutes from './monitoringRoutes.js';
+import soilRoutes from './soilRoutes.js';
 
 const router = Router();
 
@@ -29,6 +30,10 @@ router.use('/crops', cropRoutes);
 
 // Mount crop monitoring & health telemetry routes under /api/monitoring
 router.use('/monitoring', monitoringRoutes);
+
+// Mount soil analysis & soil health management routes under /api/soil-analysis and /api/soil
+router.use('/soil-analysis', soilRoutes);
+router.use('/soil', soilRoutes);
 
 // Root /api information endpoint
 router.get('/', (req, res) => {

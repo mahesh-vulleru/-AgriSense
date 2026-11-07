@@ -60,12 +60,28 @@ export const initSocket = (httpServer) => {
     const roomName = `farmer:${farmerId}`;
     socket.join(roomName);
     logger.info(
-      `[Socket.IO] Farmer connected: ${socket.user.name || socket.user.email || farmerId} (Socket ID: ${socket.id}, Room: ${roomName})`
+      `[Socket.IO] User connected: ${socket.user.name || socket.user.email || farmerId} (Socket ID: ${socket.id}, Room: ${roomName})`
     );
+
+    // Consultation Workspace Room Handlers
+    socket.on('consultation:join', ({ consultationId }) => {
+      if (!consultationId) return;
+      const cRoom = `consultation:${String(consultationId)}`;
+      socket.join(cRoom);
+      logger.info(`[Socket.IO] ${socket.user.name || farmerId} joined consultation room: ${cRoom}`);
+      socket.emit('consultation:joined', { consultationId });
+    });
+
+    socket.on('consultation:leave', ({ consultationId }) => {
+      if (!consultationId) return;
+      const cRoom = `consultation:${String(consultationId)}`;
+      socket.leave(cRoom);
+      logger.info(`[Socket.IO] ${socket.user.name || farmerId} left consultation room: ${cRoom}`);
+    });
 
     socket.on('disconnect', (reason) => {
       logger.info(
-        `[Socket.IO] Farmer disconnected: ${socket.user.name || farmerId} (Reason: ${reason})`
+        `[Socket.IO] User disconnected: ${socket.user.name || farmerId} (Reason: ${reason})`
       );
     });
   });
@@ -104,6 +120,30 @@ export const sendUnreadCountToFarmer = (farmerId, count) => {
   const fid = String(farmerId);
   const roomName = `farmer:${fid}`;
   ioInstance.to(roomName).emit('notification:unreadCount', { unreadCount: count });
+  return true;
+};
+
+/**
+ * Broadcast new chat message to a consultation room.
+ * @param {string|mongoose.Types.ObjectId} consultationId
+ * @param {object} message
+ */
+export const sendConsultationMessage = (consultationId, message) => {
+  if (!ioInstance) return false;
+  const cid = String(consultationId);
+  ioInstance.to(`consultation:${cid}`).emit('consultation:message', message);
+  return true;
+};
+
+/**
+ * Broadcast status or recommendation update to a consultation room.
+ * @param {string|mongoose.Types.ObjectId} consultationId
+ * @param {object} consultation
+ */
+export const sendConsultationUpdate = (consultationId, consultation) => {
+  if (!ioInstance) return false;
+  const cid = String(consultationId);
+  ioInstance.to(`consultation:${cid}`).emit('consultation:update', consultation);
   return true;
 };
 

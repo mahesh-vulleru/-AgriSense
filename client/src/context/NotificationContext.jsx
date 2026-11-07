@@ -42,6 +42,7 @@ export const NotificationProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [socketStatus, setSocketStatus] = useState('disconnected');
+  const [socketInstance, setSocketInstance] = useState(null);
   const [latestLiveAlert, setLatestLiveAlert] = useState(null);
 
   const socketRef = useRef(null);
@@ -269,10 +270,12 @@ export const NotificationProvider = ({ children }) => {
 
     socket.on('connect', () => {
       setSocketStatus('connected');
+      setSocketInstance(socket);
     });
 
     socket.on('disconnect', () => {
       setSocketStatus('disconnected');
+      setSocketInstance(null);
     });
 
     socket.on('connect_error', () => {
@@ -307,10 +310,12 @@ export const NotificationProvider = ({ children }) => {
     return () => {
       socket.disconnect();
       socketRef.current = null;
+      setSocketInstance(null);
     };
   }, [user]);
 
   const value = {
+    socket: socketInstance,
     unreadCount,
     notifications,
     summary,

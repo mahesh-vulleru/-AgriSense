@@ -80,6 +80,7 @@ const notificationSchema = new mongoose.Schema(
         'Crop',
         'CropAssessment',
         'Farm',
+        'Consultation',
         null,
       ],
       default: null,

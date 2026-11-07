@@ -14,6 +14,7 @@ import AddCropPage from '../pages/crops/AddCropPage.jsx';
 import CropDetailsPage from '../pages/crops/CropDetailsPage.jsx';
 import EditCropPage from '../pages/crops/EditCropPage.jsx';
 import CropMonitoringPage from '../pages/monitoring/CropMonitoringPage.jsx';
+import SoilAnalysisPage from '../pages/soil/SoilAnalysisPage.jsx';
 import NotFoundPage from '../pages/NotFoundPage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import PublicRoute from './PublicRoute.jsx';
@@ -76,7 +77,7 @@ export const AppRoutes = () => {
 
         {/* Agricultural Precision Modules */}
         <Route path="monitoring" element={<CropMonitoringPage />} />
-        <Route path="soil-analysis" element={<GenericModulePage />} />
+        <Route path="soil-analysis" element={<SoilAnalysisPage />} />
         <Route path="irrigation" element={<GenericModulePage />} />
         <Route path="weather" element={<WeatherAdvisoryPage />} />
         <Route path="disease-detection" element={<GenericModulePage />} />

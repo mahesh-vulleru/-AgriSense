@@ -10,6 +10,7 @@ import soilRoutes from './soilRoutes.js';
 import irrigationRoutes from './irrigationRoutes.js';
 import diseaseRoutes from './diseaseRoutes.js';
 import reportsRoutes from './reportsRoutes.js';
+import notificationRoutes from './notificationRoutes.js';
 
 const router = Router();
 
@@ -47,6 +48,9 @@ router.use('/disease', diseaseRoutes);
 
 // Mount agricultural reports & analytics routes under /api/reports
 router.use('/reports', reportsRoutes);
+
+// Mount real-time notifications & alert management routes under /api/notifications
+router.use('/notifications', notificationRoutes);
 
 // Root /api information endpoint
 router.get('/', (req, res) => {

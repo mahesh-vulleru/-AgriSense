@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useHealth } from '../hooks/useHealth.js';
 import { useAuth } from '../hooks/useAuth.js';
+import { useNotifications } from '../hooks/useNotifications.js';
 import Badge from '../components/common/Badge.jsx';
 
 export const Sidebar = ({
@@ -38,6 +39,7 @@ export const Sidebar = ({
   const navigate = useNavigate();
   const { status, latency, healthData, checkNow } = useHealth();
   const { user, logout } = useAuth();
+  const { unreadCount } = useNotifications();
 
   const handleLogout = () => {
     logout();
@@ -83,7 +85,12 @@ export const Sidebar = ({
       group: 'ACTIVITY & SUPPORT',
       items: [
         { name: 'Reports', path: '/dashboard/reports', icon: BarChart3 },
-        { name: 'Notifications', path: '/dashboard/notifications', icon: Bell },
+        {
+          name: 'Notifications',
+          path: '/dashboard/notifications',
+          icon: Bell,
+          badge: unreadCount > 0 ? (unreadCount > 99 ? '99+' : String(unreadCount)) : undefined,
+        },
         { name: 'Consultation', path: '/dashboard/consultation', icon: MessageSquare },
       ],
     },
@@ -370,11 +377,18 @@ export const Sidebar = ({
                           : 'text-slate-600 hover:bg-[#F7F9F5] hover:text-[#166534]'
                       }`}
                     >
-                      <Icon
-                        className={`w-5 h-5 shrink-0 ${
-                          isActive ? 'text-[#22C55E]' : 'text-slate-400 group-hover:text-[#166534]'
-                        }`}
-                      />
+                      <div className="relative flex items-center justify-center">
+                        <Icon
+                          className={`w-5 h-5 shrink-0 ${
+                            isActive ? 'text-[#22C55E]' : 'text-slate-400 group-hover:text-[#166534]'
+                          }`}
+                        />
+                        {item.badge && (
+                          <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500 ring-2 ring-white" />
+                          </span>
+                        )}
+                      </div>
                     </Link>
                   );
                 }

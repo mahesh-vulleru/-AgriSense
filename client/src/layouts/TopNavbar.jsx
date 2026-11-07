@@ -11,11 +11,13 @@ import {
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useHealth } from '../hooks/useHealth.js';
 import { useAuth } from '../hooks/useAuth.js';
+import { useNotifications } from '../hooks/useNotifications.js';
 import Badge from '../components/common/Badge.jsx';
 
 export const TopNavbar = ({ onOpenSidebar, isCollapsed = false, onToggleCollapse }) => {
   const { status, checkNow, lastChecked } = useHealth();
   const { user, logout } = useAuth();
+  const { unreadCount, socketStatus } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -392,13 +394,25 @@ export const TopNavbar = ({ onOpenSidebar, isCollapsed = false, onToggleCollapse
         <Link
           to="/dashboard/notifications"
           className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
-          aria-label="View notifications"
-          title="Notifications"
+          aria-label={unreadCount > 0 ? `${unreadCount} unread notifications` : 'View notifications'}
+          title={unreadCount > 0 ? `${unreadCount} unread notifications` : 'Notifications'}
         >
           <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
-          <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#22C55E] ring-2 ring-white" />
-          </span>
+          {unreadCount > 0 ? (
+            <span
+              id="topnavbar-notification-badge"
+              className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white font-bold text-[10px] ring-2 ring-white shadow-xs animate-pulse"
+            >
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          ) : socketStatus === 'connected' ? (
+            <span
+              className="absolute top-1.5 right-1.5 flex h-2 w-2"
+              title="Live notification stream connected"
+            >
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#22C55E] ring-2 ring-white" />
+            </span>
+          ) : null}
         </Link>
 
         <div className="h-6 w-px bg-slate-200 hidden sm:block" />

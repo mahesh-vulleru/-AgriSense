@@ -6,6 +6,7 @@ import SoilAnalysis from '../models/SoilAnalysis.js';
 import DiseaseScan from '../models/DiseaseScan.js';
 import { analyzeCropDisease, isGeminiConfigured } from '../services/geminiDiseaseService.js';
 import { getAgriculturalWeather } from '../services/weatherService.js';
+import { createNotification } from '../services/notificationService.js';
 import { env } from '../config/env.js';
 import { logger } from '../utils/logger.js';
 
@@ -193,6 +194,26 @@ export const diseaseController = {
       await scanRecord.save();
       await scanRecord.populate('farm', '_id name location acreage');
       await scanRecord.populate('crop', '_id name variety growthStage category');
+
+      // Dispatch real-time notification if pathogen or damage detected
+      if (['Diseased', 'Pest Damage', 'Nutrient Deficiency'].includes(scanRecord.status)) {
+        createNotification({
+          farmerId,
+          title: scanRecord.status === 'Diseased'
+            ? `Critical Disease Alert: ${scanRecord.possibleDisease || 'Pathogen Detected'}`
+            : `Crop Health Warning: ${scanRecord.status}`,
+          message: `AI diagnosis detected ${scanRecord.status} (${scanRecord.possibleDisease}) on ${crop.cropName || crop.name} at ${farm.name}. Recommended action: ${scanRecord.suggestedActions?.[0] || 'Inspect crop foliage immediately.'}`,
+          category: 'disease',
+          severity: scanRecord.status === 'Diseased' ? 'critical' : 'warning',
+          farm: farm._id,
+          crop: crop._id,
+          relatedId: scanRecord._id,
+          relatedModel: 'DiseaseScan',
+          actionUrl: '/dashboard/disease-detection',
+          actionLabel: 'View AI Diagnosis',
+          dedupKey: `disease_scan_${scanRecord._id}`,
+        }).catch((e) => logger.warn('Notification trigger error:', e.message));
+      }
 
       logger.info(`Disease scan completed successfully for ${crop.name}: ${scanRecord.possibleDisease}`);
 

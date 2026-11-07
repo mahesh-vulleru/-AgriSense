@@ -8,13 +8,13 @@ import {
   Edit,
   TrendingUp,
   Plus,
-  X,
   Archive,
   Check,
 } from 'lucide-react';
 import cropService from '../../services/cropService.js';
 import Button from '../../components/common/Button.jsx';
 import Badge from '../../components/common/Badge.jsx';
+import Modal from '../../components/common/Modal.jsx';
 import { GROWTH_STAGES, STAGE_CONFIG } from '../../constants/cropConstants.js';
 
 export default function CropDetailsPage() {
@@ -50,6 +50,15 @@ export default function CropDetailsPage() {
   });
   const [submittingMilestone, setSubmittingMilestone] = useState(false);
 
+  const openStageModal = (targetStage = null) => {
+    setStageForm({
+      stage: targetStage || crop?.growthStage || 'Vegetative Growth',
+      notes: '',
+      transitionDate: new Date().toISOString().split('T')[0],
+    });
+    setShowStageModal(true);
+  };
+
   useEffect(() => {
     let active = true;
     async function loadData() {
@@ -57,14 +66,19 @@ export default function CropDetailsPage() {
         const res = await cropService.getCropById(id);
         if (active && res.success && res.crop) {
           setCrop(res.crop);
-          setStageForm({
-            stage: res.crop.growthStage || 'Vegetative Growth',
-            notes: '',
-            transitionDate: new Date().toISOString().split('T')[0],
+          setStageForm((prev) => {
+            if (!prev.stage) {
+              return {
+                stage: res.crop.growthStage || 'Vegetative Growth',
+                notes: '',
+                transitionDate: new Date().toISOString().split('T')[0],
+              };
+            }
+            return prev;
           });
           setHarvestForm((prev) => ({
             ...prev,
-            yieldUnit: res.crop.yieldUnit || 'kg',
+            yieldUnit: res.crop.yieldUnit || prev.yieldUnit || 'kg',
           }));
         }
       } catch (err) {
@@ -190,7 +204,7 @@ export default function CropDetailsPage() {
     ? GROWTH_STAGES.findIndex((s) => s.toLowerCase() === (crop.growthStage || '').toLowerCase())
     : -1;
 
-  if (loading) {
+  if (loading && !crop) {
     return (
       <div className="space-y-6 animate-pulse p-4">
         <div className="h-6 bg-slate-200 rounded w-40" />
@@ -291,7 +305,7 @@ export default function CropDetailsPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowStageModal(true)}
+            onClick={() => openStageModal()}
             className="text-xs bg-[#DCFCE7] text-[#145A32] border-[#22C55E]/40 hover:bg-[#bbf7d0]"
           >
             Update Stage
@@ -395,7 +409,7 @@ export default function CropDetailsPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowStageModal(true)}
+            onClick={() => openStageModal()}
             className="text-xs bg-white text-[#166534]"
           >
             Advance Stage
@@ -422,14 +436,7 @@ export default function CropDetailsPage() {
                 <button
                   key={stageName}
                   type="button"
-                  onClick={() => {
-                    setStageForm({
-                      stage: stageName,
-                      notes: `Manual transition to stage ${index + 1}: ${stageName}`,
-                      transitionDate: new Date().toISOString().split('T')[0],
-                    });
-                    setShowStageModal(true);
-                  }}
+                  onClick={() => openStageModal(stageName)}
                   className="flex flex-col items-center group relative z-10 focus:outline-none cursor-pointer max-w-[80px]"
                 >
                   {/* Step Bubble */}
@@ -530,7 +537,7 @@ export default function CropDetailsPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowStageModal(true)}
+              onClick={() => openStageModal()}
               className="text-xs bg-white"
             >
               Log New Stage
@@ -775,307 +782,283 @@ export default function CropDetailsPage() {
       )}
 
       {/* MODAL 1: Update Stage */}
-      {showStageModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-base font-bold text-[#17251B]">
-                Transition Phenological Growth Stage
-              </h3>
-              <button onClick={() => setShowStageModal(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleStageSubmit} className="space-y-4 text-xs">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Target Growth Stage (11 Stages)
-                </label>
-                <select
-                  value={stageForm.stage}
-                  onChange={(e) => setStageForm((prev) => ({ ...prev, stage: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 bg-white p-2.5 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
-                  required
-                >
-                  {GROWTH_STAGES.map((s, idx) => (
-                    <option key={s} value={s}>
-                      Stage {idx + 1}: {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Transition Effective Date
-                </label>
-                <input
-                  type="date"
-                  value={stageForm.transitionDate}
-                  onChange={(e) => setStageForm((prev) => ({ ...prev, transitionDate: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Agronomic Observations & Field Notes
-                </label>
-                <textarea
-                  value={stageForm.notes}
-                  onChange={(e) => setStageForm((prev) => ({ ...prev, notes: e.target.value }))}
-                  placeholder="e.g. Flower initiation noticed across 70% of rows. Moisture levels optimal."
-                  rows={3}
-                  className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowStageModal(false)}
-                  disabled={submittingStage}
-                  className="bg-white"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="sm"
-                  disabled={submittingStage}
-                  className="shadow-xs"
-                >
-                  {submittingStage ? 'Recording...' : 'Save Stage Transition'}
-                </Button>
-              </div>
-            </form>
+      <Modal
+        isOpen={showStageModal}
+        onClose={() => setShowStageModal(false)}
+        title="Transition Phenological Growth Stage"
+        subtitle={crop ? `${crop.name} (${crop.variety || 'Standard'})` : ''}
+      >
+        <form onSubmit={handleStageSubmit} className="space-y-4 text-xs">
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">
+              Target Growth Stage (11 Stages)
+            </label>
+            <select
+              value={stageForm.stage}
+              onChange={(e) => setStageForm((prev) => ({ ...prev, stage: e.target.value }))}
+              className="w-full rounded-xl border border-slate-200 bg-white p-2.5 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
+              required
+            >
+              {GROWTH_STAGES.map((s, idx) => (
+                <option key={s} value={s}>
+                  Stage {idx + 1}: {s}
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
-      )}
+
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">
+              Transition Effective Date
+            </label>
+            <input
+              type="date"
+              value={stageForm.transitionDate}
+              onChange={(e) => setStageForm((prev) => ({ ...prev, transitionDate: e.target.value }))}
+              className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">
+              Agronomic Observations & Field Notes
+            </label>
+            <textarea
+              value={stageForm.notes}
+              onChange={(e) => setStageForm((prev) => ({ ...prev, notes: e.target.value }))}
+              placeholder="e.g. Flower initiation noticed across 70% of rows. Moisture levels optimal."
+              rows={3}
+              className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowStageModal(false)}
+              disabled={submittingStage}
+              className="bg-white"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={submittingStage}
+              className="shadow-xs"
+            >
+              {submittingStage ? 'Recording...' : 'Save Stage Transition'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* MODAL 2: Record Harvest */}
-      {showHarvestModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-base font-bold text-[#17251B]">
-                Record Harvest Yield
-              </h3>
-              <button onClick={() => setShowHarvestModal(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="h-5 w-5" />
-              </button>
+      <Modal
+        isOpen={showHarvestModal}
+        onClose={() => setShowHarvestModal(false)}
+        title="Record Harvest Yield"
+        subtitle={crop ? `${crop.name} - Mark crop cycle as harvested` : ''}
+      >
+        <form onSubmit={handleHarvestSubmit} className="space-y-4 text-xs">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Actual Total Yield <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                min="0"
+                value={harvestForm.actualYield}
+                onChange={(e) => setHarvestForm((prev) => ({ ...prev, actualYield: e.target.value }))}
+                placeholder="e.g. 15400"
+                className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
+                required
+              />
             </div>
 
-            <form onSubmit={handleHarvestSubmit} className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    Actual Total Yield <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={harvestForm.actualYield}
-                    onChange={(e) => setHarvestForm((prev) => ({ ...prev, actualYield: e.target.value }))}
-                    placeholder="e.g. 15400"
-                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    Yield Unit
-                  </label>
-                  <select
-                    value={harvestForm.yieldUnit}
-                    onChange={(e) => setHarvestForm((prev) => ({ ...prev, yieldUnit: e.target.value }))}
-                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
-                  >
-                    <option value="kg">kg</option>
-                    <option value="quintals">quintals</option>
-                    <option value="tons">tons</option>
-                    <option value="bags">bags</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    Quality Grade
-                  </label>
-                  <select
-                    value={harvestForm.qualityGrade}
-                    onChange={(e) => setHarvestForm((prev) => ({ ...prev, qualityGrade: e.target.value }))}
-                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
-                  >
-                    <option value="Grade A">Grade A</option>
-                    <option value="Grade B">Grade B</option>
-                    <option value="Grade C">Grade C</option>
-                    <option value="Premium">Premium</option>
-                    <option value="Standard">Standard</option>
-                    <option value="Low">Low</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    Harvest Date
-                  </label>
-                  <input
-                    type="date"
-                    value={harvestForm.harvestDate}
-                    onChange={(e) => setHarvestForm((prev) => ({ ...prev, harvestDate: e.target.value }))}
-                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Harvest Notes / Market Destination
-                </label>
-                <textarea
-                  value={harvestForm.harvestNotes}
-                  onChange={(e) => setHarvestForm((prev) => ({ ...prev, harvestNotes: e.target.value }))}
-                  placeholder="e.g. Moisture level checked at 13.5%. Dispatched to district mandis."
-                  rows={3}
-                  className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowHarvestModal(false)}
-                  disabled={submittingHarvest}
-                  className="bg-white"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="sm"
-                  disabled={submittingHarvest}
-                  className="shadow-xs"
-                >
-                  {submittingHarvest ? 'Saving...' : 'Confirm & Complete Harvest'}
-                </Button>
-              </div>
-            </form>
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Yield Unit
+              </label>
+              <select
+                value={harvestForm.yieldUnit}
+                onChange={(e) => setHarvestForm((prev) => ({ ...prev, yieldUnit: e.target.value }))}
+                className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
+              >
+                <option value="kg">kg</option>
+                <option value="quintals">quintals</option>
+                <option value="tons">tons</option>
+                <option value="bags">bags</option>
+              </select>
+            </div>
           </div>
-        </div>
-      )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Quality Grade
+              </label>
+              <select
+                value={harvestForm.qualityGrade}
+                onChange={(e) => setHarvestForm((prev) => ({ ...prev, qualityGrade: e.target.value }))}
+                className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
+              >
+                <option value="Grade A">Grade A</option>
+                <option value="Grade B">Grade B</option>
+                <option value="Grade C">Grade C</option>
+                <option value="Premium">Premium</option>
+                <option value="Standard">Standard</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Harvest Date
+              </label>
+              <input
+                type="date"
+                value={harvestForm.harvestDate}
+                onChange={(e) => setHarvestForm((prev) => ({ ...prev, harvestDate: e.target.value }))}
+                className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">
+              Harvest Notes / Market Destination
+            </label>
+            <textarea
+              value={harvestForm.harvestNotes}
+              onChange={(e) => setHarvestForm((prev) => ({ ...prev, harvestNotes: e.target.value }))}
+              placeholder="e.g. Moisture level checked at 13.5%. Dispatched to district mandis."
+              rows={3}
+              className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowHarvestModal(false)}
+              disabled={submittingHarvest}
+              className="bg-white"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={submittingHarvest}
+              className="shadow-xs"
+            >
+              {submittingHarvest ? 'Saving...' : 'Confirm & Complete Harvest'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* MODAL 3: Add Calendar Milestone */}
-      {showMilestoneModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-base font-bold text-[#17251B]">
-                Schedule Agronomic Milestone
-              </h3>
-              <button onClick={() => setShowMilestoneModal(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="h-5 w-5" />
-              </button>
+      <Modal
+        isOpen={showMilestoneModal}
+        onClose={() => setShowMilestoneModal(false)}
+        title="Schedule Agronomic Milestone"
+        subtitle="Add a target field operation or advisory milestone"
+      >
+        <form onSubmit={handleMilestoneSubmit} className="space-y-4 text-xs">
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">
+              Activity Title <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={milestoneForm.activity}
+              onChange={(e) => setMilestoneForm((prev) => ({ ...prev, activity: e.target.value }))}
+              placeholder="e.g. Second foliar zinc spray, weed removal"
+              className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Category
+              </label>
+              <select
+                value={milestoneForm.category}
+                onChange={(e) => setMilestoneForm((prev) => ({ ...prev, category: e.target.value }))}
+                className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
+              >
+                <option value="General">General</option>
+                <option value="Fertilization">Fertilization</option>
+                <option value="Irrigation">Irrigation</option>
+                <option value="Pest Management">Pest Management</option>
+                <option value="Stage">Stage</option>
+                <option value="Harvest">Harvest</option>
+              </select>
             </div>
 
-            <form onSubmit={handleMilestoneSubmit} className="space-y-4 text-xs">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Activity Title <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={milestoneForm.activity}
-                  onChange={(e) => setMilestoneForm((prev) => ({ ...prev, activity: e.target.value }))}
-                  placeholder="e.g. Second foliar zinc spray, weed removal"
-                  className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    Category
-                  </label>
-                  <select
-                    value={milestoneForm.category}
-                    onChange={(e) => setMilestoneForm((prev) => ({ ...prev, category: e.target.value }))}
-                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
-                  >
-                    <option value="General">General</option>
-                    <option value="Fertilization">Fertilization</option>
-                    <option value="Irrigation">Irrigation</option>
-                    <option value="Pest Management">Pest Management</option>
-                    <option value="Stage">Stage</option>
-                    <option value="Harvest">Harvest</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    Target Date <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={milestoneForm.targetDate}
-                    onChange={(e) => setMilestoneForm((prev) => ({ ...prev, targetDate: e.target.value }))}
-                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Activity Notes (Optional)
-                </label>
-                <textarea
-                  value={milestoneForm.notes}
-                  onChange={(e) => setMilestoneForm((prev) => ({ ...prev, notes: e.target.value }))}
-                  placeholder="e.g. Apply early morning before heat index rises..."
-                  rows={2}
-                  className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowMilestoneModal(false)}
-                  disabled={submittingMilestone}
-                  className="bg-white"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="sm"
-                  disabled={submittingMilestone}
-                  className="shadow-xs"
-                >
-                  {submittingMilestone ? 'Adding...' : 'Add to Calendar'}
-                </Button>
-              </div>
-            </form>
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Target Date <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={milestoneForm.targetDate}
+                onChange={(e) => setMilestoneForm((prev) => ({ ...prev, targetDate: e.target.value }))}
+                className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
+                required
+              />
+            </div>
           </div>
-        </div>
-      )}
+
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">
+              Activity Notes (Optional)
+            </label>
+            <textarea
+              value={milestoneForm.notes}
+              onChange={(e) => setMilestoneForm((prev) => ({ ...prev, notes: e.target.value }))}
+              placeholder="e.g. Apply early morning before heat index rises..."
+              rows={2}
+              className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#166534]"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowMilestoneModal(false)}
+              disabled={submittingMilestone}
+              className="bg-white"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={submittingMilestone}
+              className="shadow-xs"
+            >
+              {submittingMilestone ? 'Adding...' : 'Add to Calendar'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

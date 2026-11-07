@@ -224,7 +224,6 @@ describe('AgriSense Phase 1 - Farmer Dashboard Data Integration Test Suite', () 
     if (server) {
       await new Promise((resolve) => server.close(resolve));
     }
-    await mongoose.disconnect();
   });
 
   it('1. Should reject dashboard request when token is missing (401)', async () => {
@@ -376,6 +375,5 @@ describe('AgriSense Phase 1 - Farmer Dashboard Data Integration Test Suite', () 
     if (server) {
       await new Promise((resolve) => server.close(resolve));
     }
-    await mongoose.disconnect();
   });
 });

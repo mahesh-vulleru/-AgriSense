@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { checkApiHealth } from '../services/healthService.js';
 
 export const useHealthCheck = (autoCheck = true, pollIntervalMs = 30000) => {
@@ -8,36 +8,50 @@ export const useHealthCheck = (autoCheck = true, pollIntervalMs = 30000) => {
   const [latency, setLatency] = useState(null);
   const [lastChecked, setLastChecked] = useState(null);
 
-  const performCheck = useCallback(async () => {
-    setStatus('loading');
+  const isCheckingRef = useRef(false);
+
+  const performCheck = useCallback(async (isManual = false) => {
+    if (isCheckingRef.current) return;
+    isCheckingRef.current = true;
+
+    // Only set loading if initial or manual to avoid background flicker
+    if (isManual || status === 'idle') {
+      setStatus('loading');
+    }
     setError(null);
 
-    const result = await checkApiHealth();
+    try {
+      const result = await checkApiHealth();
+      setLastChecked(new Date());
+      setLatency(result.latency);
 
-    setLastChecked(new Date());
-    setLatency(result.latency);
-
-    if (result.success && result.data?.success) {
-      setStatus('connected');
-      setHealthData(result.data);
-      setError(null);
-    } else {
+      if (result.success && result.data?.success) {
+        setStatus('connected');
+        setHealthData(result.data);
+        setError(null);
+      } else {
+        setStatus('disconnected');
+        setError(result.error || 'Server responded with an unhealthy state');
+        setHealthData(result.data || null);
+      }
+    } catch (err) {
       setStatus('disconnected');
-      setError(result.error || 'Server responded with an unhealthy state');
-      setHealthData(result.data || null);
+      setError(err.message || 'Health check failed');
+    } finally {
+      isCheckingRef.current = false;
     }
-  }, []);
+  }, [status]);
 
   useEffect(() => {
     if (!autoCheck) return;
 
-    // Defer initial execution via macrotask to prevent synchronous setState during effect
+    // Defer initial execution via macrotask
     const timeoutId = setTimeout(() => {
-      performCheck();
-    }, 0);
+      performCheck(false);
+    }, 100);
 
     const intervalId = setInterval(() => {
-      performCheck();
+      performCheck(false);
     }, pollIntervalMs);
 
     return () => {
@@ -46,14 +60,19 @@ export const useHealthCheck = (autoCheck = true, pollIntervalMs = 30000) => {
     };
   }, [autoCheck, pollIntervalMs, performCheck]);
 
-  return {
-    status,
-    healthData,
-    error,
-    latency,
-    lastChecked,
-    checkNow: performCheck,
-  };
+  const checkNow = useCallback(() => performCheck(true), [performCheck]);
+
+  return useMemo(
+    () => ({
+      status,
+      healthData,
+      error,
+      latency,
+      lastChecked,
+      checkNow,
+    }),
+    [status, healthData, error, latency, lastChecked, checkNow]
+  );
 };
 
 export default useHealthCheck;

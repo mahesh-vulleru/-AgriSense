@@ -53,6 +53,63 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    expertProfile: {
+      specialization: {
+        type: String,
+        default: 'Crop Protection & Agronomy',
+      },
+      qualification: {
+        type: String,
+        default: 'M.Sc. Agriculture (Agronomy)',
+      },
+      experienceYears: {
+        type: Number,
+        default: 8,
+      },
+      institution: {
+        type: String,
+        default: 'Agricultural University / Extension Center',
+      },
+      areasOfExpertise: {
+        type: [String],
+        default: [
+          'Crop Protection',
+          'Plant Diseases',
+          'Soil Health',
+          'Irrigation Management',
+          'Pest Diagnostics',
+        ],
+      },
+      availabilityStatus: {
+        type: String,
+        enum: ['Available', 'In Consultation', 'Away', 'Offline'],
+        default: 'Available',
+      },
+      availableDays: {
+        type: [String],
+        default: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      },
+      consultationModes: {
+        type: [String],
+        default: ['In-App Message', 'Audio Call', 'Video Call', 'Field Visit'],
+      },
+      rating: {
+        type: Number,
+        default: 4.8,
+      },
+      reviewsCount: {
+        type: Number,
+        default: 14,
+      },
+      bio: {
+        type: String,
+        default: 'Verified agricultural scientist and extension specialist assisting farmers in crop management and yield optimization.',
+      },
+      isVerified: {
+        type: Boolean,
+        default: true,
+      },
+    },
   },
   {
     timestamps: true,
@@ -104,6 +161,7 @@ userSchema.methods.toSafeUser = function () {
     phone: this.phone || '',
     location: this.location || '',
     role: this.role,
+    expertProfile: this.role === 'expert' ? this.expertProfile : undefined,
     isActive: this.isActive,
     lastLogin: this.lastLogin,
     createdAt: this.createdAt,

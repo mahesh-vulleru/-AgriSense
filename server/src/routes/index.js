@@ -11,6 +11,7 @@ import irrigationRoutes from './irrigationRoutes.js';
 import diseaseRoutes from './diseaseRoutes.js';
 import reportsRoutes from './reportsRoutes.js';
 import notificationRoutes from './notificationRoutes.js';
+import consultationRoutes from './consultationRoutes.js';
 
 const router = Router();
 
@@ -51,6 +52,9 @@ router.use('/reports', reportsRoutes);
 
 // Mount real-time notifications & alert management routes under /api/notifications
 router.use('/notifications', notificationRoutes);
+
+// Mount expert consultation & farmer support routes under /api/consultations
+router.use('/consultations', consultationRoutes);
 
 // Root /api information endpoint
 router.get('/', (req, res) => {

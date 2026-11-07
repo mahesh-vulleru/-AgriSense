@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "node --test --test-concurrency=1 tests/**/*.test.js"
+    "test": "node --test --test-force-exit --test-concurrency=1 tests/**/*.test.js"
   },
   "dependencies": {
     "@google/genai": "^3.0.0",
@@ -19,7 +19,8 @@
     "express-rate-limit": "^8.7.3",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.9.5",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "pdfkit": "^0.20.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"

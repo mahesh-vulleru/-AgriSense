@@ -9,6 +9,7 @@ import monitoringRoutes from './monitoringRoutes.js';
 import soilRoutes from './soilRoutes.js';
 import irrigationRoutes from './irrigationRoutes.js';
 import diseaseRoutes from './diseaseRoutes.js';
+import reportsRoutes from './reportsRoutes.js';
 
 const router = Router();
 
@@ -43,6 +44,9 @@ router.use('/irrigation', irrigationRoutes);
 // Mount AI crop disease detection routes under /api/disease-detection and /api/disease
 router.use('/disease-detection', diseaseRoutes);
 router.use('/disease', diseaseRoutes);
+
+// Mount agricultural reports & analytics routes under /api/reports
+router.use('/reports', reportsRoutes);
 
 // Root /api information endpoint
 router.get('/', (req, res) => {

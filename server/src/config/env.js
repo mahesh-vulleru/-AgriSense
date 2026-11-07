@@ -12,6 +12,9 @@ export const env = {
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
   WEATHER_PROVIDER: (process.env.WEATHER_PROVIDER || 'openweather').toLowerCase(),
   OPENWEATHER_API_KEY: process.env.OPENWEATHER_API_KEY || '',
+  AI_PROVIDER: (process.env.AI_PROVIDER || 'gemini').toLowerCase(),
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
+  AI_MODEL: process.env.AI_MODEL || 'gemini-2.5-flash',
 };
 
 export default env;

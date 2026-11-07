@@ -16,6 +16,7 @@ import EditCropPage from '../pages/crops/EditCropPage.jsx';
 import CropMonitoringPage from '../pages/monitoring/CropMonitoringPage.jsx';
 import SoilAnalysisPage from '../pages/soil/SoilAnalysisPage.jsx';
 import SmartIrrigationPage from '../pages/irrigation/SmartIrrigationPage.jsx';
+import DiseaseDetectionPage from '../pages/disease/DiseaseDetectionPage.jsx';
 import NotFoundPage from '../pages/NotFoundPage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import PublicRoute from './PublicRoute.jsx';
@@ -81,7 +82,8 @@ export const AppRoutes = () => {
         <Route path="soil-analysis" element={<SoilAnalysisPage />} />
         <Route path="irrigation" element={<SmartIrrigationPage />} />
         <Route path="weather" element={<WeatherAdvisoryPage />} />
-        <Route path="disease-detection" element={<GenericModulePage />} />
+        <Route path="disease-detection" element={<DiseaseDetectionPage />} />
+        <Route path="disease" element={<DiseaseDetectionPage />} />
         <Route path="reports" element={<GenericModulePage />} />
         <Route path="notifications" element={<GenericModulePage />} />
         <Route path="consultation" element={<GenericModulePage />} />

@@ -8,6 +8,7 @@ import cropRoutes from './cropRoutes.js';
 import monitoringRoutes from './monitoringRoutes.js';
 import soilRoutes from './soilRoutes.js';
 import irrigationRoutes from './irrigationRoutes.js';
+import diseaseRoutes from './diseaseRoutes.js';
 
 const router = Router();
 
@@ -38,6 +39,10 @@ router.use('/soil', soilRoutes);
 
 // Mount smart irrigation & water management routes under /api/irrigation
 router.use('/irrigation', irrigationRoutes);
+
+// Mount AI crop disease detection routes under /api/disease-detection and /api/disease
+router.use('/disease-detection', diseaseRoutes);
+router.use('/disease', diseaseRoutes);
 
 // Root /api information endpoint
 router.get('/', (req, res) => {

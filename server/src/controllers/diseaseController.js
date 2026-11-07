@@ -19,8 +19,8 @@ export const diseaseController = {
       const configured = isGeminiConfigured();
       res.status(200).json({
         success: true,
-        provider: env.AI_PROVIDER || 'gemini',
-        model: env.AI_MODEL || 'gemini-2.5-flash',
+        provider: process.env.AI_PROVIDER || env.AI_PROVIDER || 'gemini',
+        model: (process.env.AI_MODEL || env.AI_MODEL || 'gemini-2.5-flash-lite').replace(/^gemini-2.5-flash$/, 'gemini-2.5-flash-lite'),
         configured,
         message: configured
           ? 'Google Gemini multimodal disease diagnosis engine is active.'

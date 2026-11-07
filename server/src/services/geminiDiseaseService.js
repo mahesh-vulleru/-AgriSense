@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { env } from '../config/env.js';
 import { logger } from '../utils/logger.js';
@@ -6,12 +7,24 @@ import { logger } from '../utils/logger.js';
  * Check if real Gemini AI provider is configured with a valid key
  */
 export function isGeminiConfigured() {
-  const key = env.GEMINI_API_KEY;
-  if (!key) return false;
-  if (key === 'YOUR_GEMINI_API_KEY' || key === 'YOUR_API_KEY' || key.trim() === '') {
+  let key = process.env.GEMINI_API_KEY || env.GEMINI_API_KEY;
+  if (!key || key === 'YOUR_GEMINI_API_KEY' || key === 'YOUR_API_KEY' || key.trim() === '') {
+    dotenv.config();
+    key = process.env.GEMINI_API_KEY;
+  }
+  if (!key || key === 'YOUR_GEMINI_API_KEY' || key === 'YOUR_API_KEY' || key.trim() === '') {
     return false;
   }
   return true;
+}
+
+export function getGeminiApiKey() {
+  let key = process.env.GEMINI_API_KEY || env.GEMINI_API_KEY;
+  if (!key || key === 'YOUR_GEMINI_API_KEY' || key === 'YOUR_API_KEY' || key.trim() === '') {
+    dotenv.config();
+    key = process.env.GEMINI_API_KEY;
+  }
+  return key || '';
 }
 
 /**
@@ -41,8 +54,11 @@ export async function analyzeCropDisease({
     throw error;
   }
 
-  const modelName = env.AI_MODEL || 'gemini-2.5-flash';
-  const apiKey = env.GEMINI_API_KEY;
+  let modelName = process.env.AI_MODEL || env.AI_MODEL || 'gemini-2.5-flash-lite';
+  if (modelName === 'gemini-2.5-flash') {
+    modelName = 'gemini-2.5-flash-lite';
+  }
+  const apiKey = getGeminiApiKey();
 
   logger.info(`Initiating real Gemini multimodal disease diagnosis using model: ${modelName}`);
 

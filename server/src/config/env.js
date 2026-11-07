@@ -14,7 +14,7 @@ export const env = {
   OPENWEATHER_API_KEY: process.env.OPENWEATHER_API_KEY || '',
   AI_PROVIDER: (process.env.AI_PROVIDER || 'gemini').toLowerCase(),
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
-  AI_MODEL: process.env.AI_MODEL || 'gemini-2.5-flash',
+  AI_MODEL: process.env.AI_MODEL || 'gemini-2.5-flash-lite',
 };
 
 export default env;

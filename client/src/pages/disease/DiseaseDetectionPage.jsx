@@ -87,12 +87,14 @@ export default function DiseaseDetectionPage() {
       if (farmsRes?.success && Array.isArray(farmsRes.farms)) {
         setFarms(farmsRes.farms);
         if (!selectedFarmId && farmsRes.farms.length > 0) {
-          setSelectedFarmId(farmsRes.farms[0]._id);
+          const first = farmsRes.farms[0];
+          setSelectedFarmId(first._id || first.id);
         }
       } else if (Array.isArray(farmsRes?.data)) {
         setFarms(farmsRes.data);
         if (!selectedFarmId && farmsRes.data.length > 0) {
-          setSelectedFarmId(farmsRes.data[0]._id);
+          const first = farmsRes.data[0];
+          setSelectedFarmId(first._id || first.id);
         }
       }
 
@@ -129,7 +131,8 @@ export default function DiseaseDetectionPage() {
           const farmList = Array.isArray(farmsRes.farms) ? farmsRes.farms : Array.isArray(farmsRes?.data) ? farmsRes.data : [];
           setFarms(farmList);
           if (farmList.length > 0) {
-            setSelectedFarmId(farmList[0]._id);
+            const first = farmList[0];
+            setSelectedFarmId(first._id || first.id);
           }
 
           const cropList = Array.isArray(cropsRes.crops) ? cropsRes.crops : Array.isArray(cropsRes?.data) ? cropsRes.data : [];
@@ -156,28 +159,45 @@ export default function DiseaseDetectionPage() {
     };
   }, []);
 
+  // Determine active farm ID (persisting manual choice if valid for farms list, otherwise fallback to first farm)
+  const activeFarmId = useMemo(() => {
+    if (selectedFarmId && farms.some((f) => (f._id || f.id) === selectedFarmId)) {
+      return selectedFarmId;
+    }
+    if (farms.length > 0) {
+      const first = farms[0];
+      return first._id || first.id || '';
+    }
+    return '';
+  }, [selectedFarmId, farms]);
+
   // Filter crops for currently selected farm
   const availableCrops = useMemo(() => {
-    if (!selectedFarmId) return crops;
+    if (!activeFarmId) return crops;
     return crops.filter((c) => {
-      const cFarmId = c.farm?._id || c.farm;
-      return cFarmId === selectedFarmId;
+      const cFarmId = c.farm?._id || c.farm?.id || c.farm;
+      return String(cFarmId) === String(activeFarmId);
     });
-  }, [crops, selectedFarmId]);
+  }, [crops, activeFarmId]);
 
   // Determine active crop ID (persisting manual choice if valid for farm, otherwise fallback to priority/first crop)
   const activeCropId = useMemo(() => {
-    if (selectedCropId && availableCrops.some((c) => c._id === selectedCropId)) {
+    if (selectedCropId && availableCrops.some((c) => (c._id || c.id) === selectedCropId)) {
       return selectedCropId;
     }
     if (availableCrops.length > 0) {
       const priorityMatch = availableCrops.find((c) =>
         PRIORITY_CROPS.some((p) => c.name?.toLowerCase().includes(p.toLowerCase()))
       );
-      return priorityMatch ? priorityMatch._id : availableCrops[0]._id;
+      const chosen = priorityMatch || availableCrops[0];
+      return chosen?._id || chosen?.id || '';
     }
     return '';
   }, [selectedCropId, availableCrops]);
+
+  const selectedCrop = useMemo(() => {
+    return crops.find((c) => (c._id || c.id) === activeCropId);
+  }, [crops, activeCropId]);
 
   // Stop camera stream cleanly
   const stopCamera = useCallback(() => {
@@ -295,7 +315,7 @@ export default function DiseaseDetectionPage() {
 
   // Submit actual image for real AI disease diagnosis
   const handleAnalyzeCrop = async () => {
-    if (!selectedFarmId || !activeCropId) {
+    if (!activeFarmId || !activeCropId) {
       setScanError('Please select both a farm parcel and a crop before analyzing.');
       return;
     }
@@ -311,7 +331,7 @@ export default function DiseaseDetectionPage() {
 
     try {
       const res = await diseaseService.scanCrop({
-        farmId: selectedFarmId,
+        farmId: activeFarmId,
         cropId: activeCropId,
         imageBase64,
         filename: imageFileMeta?.name || 'crop_scan.jpg',
@@ -339,7 +359,7 @@ export default function DiseaseDetectionPage() {
     if (!scanToDelete) return;
     setDeletingScan(true);
     try {
-      await diseaseService.deleteScan(scanToDelete._id);
+      await diseaseService.deleteScan(scanToDelete._id || scanToDelete.id);
       setActionSuccess('Disease scan record deleted.');
       setScanToDelete(null);
       await loadInitialData(true);
@@ -353,8 +373,6 @@ export default function DiseaseDetectionPage() {
   const getStatusMeta = (status) => {
     return SCAN_STATUS_CONFIG[status] || SCAN_STATUS_CONFIG['Unable to Determine'];
   };
-
-  const selectedCrop = crops.find((c) => c._id === activeCropId);
 
   return (
     <div className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
@@ -495,16 +513,19 @@ export default function DiseaseDetectionPage() {
                   Farm Parcel <span className="text-rose-500">*</span>
                 </label>
                 <select
-                  value={selectedFarmId}
+                  value={activeFarmId}
                   onChange={(e) => setSelectedFarmId(e.target.value)}
                   className="w-full text-xs rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Select Farm Parcel</option>
-                  {farms.map((f) => (
-                    <option key={f._id} value={f._id}>
-                      {f.name} ({f.location || f.district})
-                    </option>
-                  ))}
+                  {farms.map((f) => {
+                    const fId = f._id || f.id;
+                    return (
+                      <option key={fId} value={fId}>
+                        {f.name} ({f.location || f.district})
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -519,11 +540,14 @@ export default function DiseaseDetectionPage() {
                   className="w-full text-xs rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Select Crop to Inspect</option>
-                  {availableCrops.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name} ({c.variety || 'Standard'}) · {c.growthStage || 'Vegetative'}
-                    </option>
-                  ))}
+                  {availableCrops.map((c) => {
+                    const cId = c._id || c.id;
+                    return (
+                      <option key={cId} value={cId}>
+                        {c.name} ({c.variety || 'Standard'}) · {c.growthStage || 'Vegetative'}
+                      </option>
+                    );
+                  })}
                 </select>
 
                 {/* Priority crop tags */}
@@ -712,7 +736,7 @@ export default function DiseaseDetectionPage() {
                 variant="primary"
                 size="md"
                 onClick={handleAnalyzeCrop}
-                disabled={analyzing || !imageBase64 || !activeCropId || !providerStatus.configured}
+                disabled={analyzing || !imageBase64 || !activeFarmId || !activeCropId || !providerStatus.configured}
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-xs py-2.5"
               >
                 {analyzing ? (

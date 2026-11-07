@@ -484,8 +484,12 @@ export const Sidebar = ({
                 isCollapsed ? 'p-2 justify-center' : 'p-2.5 gap-2.5'
               }`}
             >
-              <div className="h-8 w-8 rounded-lg bg-[#166534] text-white flex items-center justify-center font-bold text-xs shrink-0">
-                {getInitials(user.name)}
+              <div className="h-8 w-8 rounded-lg bg-[#166534] text-white flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
+                {user.avatar ? (
+                  <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  getInitials(user.name)
+                )}
               </div>
               {!isCollapsed && (
                 <div className="overflow-hidden flex-1 min-w-0">

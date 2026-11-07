@@ -421,9 +421,17 @@ export const TopNavbar = ({ onOpenSidebar, isCollapsed = false, onToggleCollapse
         <div className="flex items-center gap-2 sm:gap-2.5">
           <div
             title={`${user?.name || 'User'} (${user?.role || 'farmer'}) - ${user?.email || ''}`}
-            className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-[#166534] text-white flex items-center justify-center font-bold text-xs ring-2 ring-[#DCFCE7] shadow-xs cursor-default shrink-0"
+            className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-[#166534] text-white flex items-center justify-center font-bold text-xs ring-2 ring-[#DCFCE7] shadow-xs cursor-default shrink-0 overflow-hidden"
           >
-            {getInitials(user?.name)}
+            {user?.avatar ? (
+              <img
+                src={user.avatar}
+                alt={user?.name || 'User'}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              getInitials(user?.name)
+            )}
           </div>
           <div className="hidden xl:block text-left">
             <p className="text-xs font-semibold text-[#17251B] leading-none truncate max-w-[120px]">

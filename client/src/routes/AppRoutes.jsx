@@ -21,6 +21,8 @@ import ReportsPage from '../pages/reports/ReportsPage.jsx';
 import NotificationsPage from '../pages/notifications/NotificationsPage.jsx';
 import ConsultationPage from '../pages/consultation/ConsultationPage.jsx';
 import ConsultationDetailPage from '../pages/consultation/ConsultationDetailPage.jsx';
+import ProfilePage from '../pages/profile/ProfilePage.jsx';
+import SettingsPage from '../pages/settings/SettingsPage.jsx';
 import NotFoundPage from '../pages/NotFoundPage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import PublicRoute from './PublicRoute.jsx';
@@ -92,8 +94,8 @@ export const AppRoutes = () => {
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="consultation" element={<ConsultationPage />} />
         <Route path="consultation/:id" element={<ConsultationDetailPage />} />
-        <Route path="profile" element={<GenericModulePage />} />
-        <Route path="settings" element={<GenericModulePage />} />
+        <Route path="profile" element={<ProfilePage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
 
       {/* ========================================================= */}
@@ -111,7 +113,7 @@ export const AppRoutes = () => {
         <Route path="dashboard" element={<ExpertDashboard />} />
         <Route path="consultations" element={<ConsultationPage isExpertView={true} />} />
         <Route path="consultations/:id" element={<ConsultationDetailPage isExpertView={true} />} />
-        <Route path="profile" element={<GenericModulePage />} />
+        <Route path="profile" element={<ProfilePage isExpertView={true} />} />
       </Route>
 
       {/* ========================================================= */}

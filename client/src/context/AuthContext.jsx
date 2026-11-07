@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { AuthContext } from './authContextInstance.js';
 import authService from '../services/authService.js';
-import { getStoredToken } from '../services/api.js';
+import { getStoredToken, setStoredUser } from '../services/api.js';
 
 export const AuthProvider = ({ children }) => {
   const initialToken = getStoredToken();
@@ -122,6 +122,15 @@ export const AuthProvider = ({ children }) => {
     setError(null);
   }, []);
 
+  // Update in-memory and persisted user profile
+  const updateUser = useCallback((updatedUserData) => {
+    setUser((prev) => {
+      const nextUser = { ...prev, ...updatedUserData };
+      setStoredUser(nextUser);
+      return nextUser;
+    });
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -133,8 +142,9 @@ export const AuthProvider = ({ children }) => {
       register,
       logout,
       refreshUser,
+      updateUser,
     }),
-    [user, token, isAuthenticated, loading, error, logout, refreshUser]
+    [user, token, isAuthenticated, loading, error, logout, refreshUser, updateUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

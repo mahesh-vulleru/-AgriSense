@@ -37,6 +37,90 @@ const userSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    avatar: {
+      type: String,
+      default: '',
+    },
+    address: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    village: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    mandal: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    district: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    state: {
+      type: String,
+      trim: true,
+      default: 'Telangana',
+    },
+    pincode: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    language: {
+      type: String,
+      enum: ['en', 'te', 'hi'],
+      default: 'en',
+    },
+    defaultFarm: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Farm',
+      default: null,
+    },
+    preferences: {
+      areaUnit: {
+        type: String,
+        enum: ['acres', 'hectares'],
+        default: 'acres',
+      },
+      tempUnit: {
+        type: String,
+        enum: ['celsius', 'fahrenheit'],
+        default: 'celsius',
+      },
+      waterUnit: {
+        type: String,
+        enum: ['liters', 'gallons'],
+        default: 'liters',
+      },
+      theme: {
+        type: String,
+        enum: ['light', 'dark', 'system'],
+        default: 'light',
+      },
+      timezone: {
+        type: String,
+        default: 'Asia/Kolkata',
+      },
+    },
+    deletionRequest: {
+      requested: {
+        type: Boolean,
+        default: false,
+      },
+      requestedAt: {
+        type: Date,
+        default: null,
+      },
+      reason: {
+        type: String,
+        default: '',
+      },
+    },
     role: {
       type: String,
       enum: {
@@ -160,10 +244,27 @@ userSchema.methods.toSafeUser = function () {
     email: this.email,
     phone: this.phone || '',
     location: this.location || '',
+    avatar: this.avatar || '',
+    address: this.address || '',
+    village: this.village || '',
+    mandal: this.mandal || '',
+    district: this.district || '',
+    state: this.state || 'Telangana',
+    pincode: this.pincode || '',
+    language: this.language || 'en',
     role: this.role,
+    defaultFarm: this.defaultFarm,
+    preferences: this.preferences || {
+      areaUnit: 'acres',
+      tempUnit: 'celsius',
+      waterUnit: 'liters',
+      theme: 'light',
+      timezone: 'Asia/Kolkata',
+    },
     expertProfile: this.role === 'expert' ? this.expertProfile : undefined,
     isActive: this.isActive,
     lastLogin: this.lastLogin,
+    deletionRequest: this.deletionRequest || { requested: false },
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };

@@ -29,6 +29,10 @@ const notificationPreferenceSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    consultationAlerts: {
+      type: Boolean,
+      default: true,
+    },
     systemAlerts: {
       type: Boolean,
       default: true,

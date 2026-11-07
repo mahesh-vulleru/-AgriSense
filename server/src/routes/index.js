@@ -12,6 +12,7 @@ import diseaseRoutes from './diseaseRoutes.js';
 import reportsRoutes from './reportsRoutes.js';
 import notificationRoutes from './notificationRoutes.js';
 import consultationRoutes from './consultationRoutes.js';
+import userRoutes from './userRoutes.js';
 
 const router = Router();
 
@@ -55,6 +56,9 @@ router.use('/notifications', notificationRoutes);
 
 // Mount expert consultation & farmer support routes under /api/consultations
 router.use('/consultations', consultationRoutes);
+
+// Mount user profile, settings & account management routes under /api/users
+router.use('/users', userRoutes);
 
 // Root /api information endpoint
 router.get('/', (req, res) => {

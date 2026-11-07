@@ -1,6 +1,7 @@
 import { BrowserRouter } from 'react-router-dom';
 import { HealthProvider } from './context/HealthContext.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
+import { NotificationProvider } from './context/NotificationContext.jsx';
 import AppRoutes from './routes/AppRoutes.jsx';
 
 function App() {
@@ -8,7 +9,9 @@ function App() {
     <BrowserRouter>
       <HealthProvider>
         <AuthProvider>
-          <AppRoutes />
+          <NotificationProvider>
+            <AppRoutes />
+          </NotificationProvider>
         </AuthProvider>
       </HealthProvider>
     </BrowserRouter>

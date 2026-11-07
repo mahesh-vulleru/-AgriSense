@@ -3,14 +3,20 @@ import { env } from './config/env.js';
 import { connectDB } from './config/db.js';
 import { logger } from './utils/logger.js';
 import mongoose from 'mongoose';
+import http from 'http';
+import { initSocket } from './socket/socket.js';
 
 const startServer = async () => {
   // Connect to MongoDB (graceful mode ensures server starts even if DB is momentarily unreachable)
   await connectDB();
 
-  const server = app.listen(env.PORT, () => {
+  const httpServer = http.createServer(app);
+  initSocket(httpServer);
+
+  const server = httpServer.listen(env.PORT, () => {
     logger.success(`AgriSense Server running in ${env.NODE_ENV} mode on http://localhost:${env.PORT}`);
     logger.info(`Health check available at http://localhost:${env.PORT}/api/health`);
+    logger.info(`Socket.IO real-time notification engine initialized.`);
 
     // Validate weather provider configuration on startup
     if (env.WEATHER_PROVIDER === 'openweather') {
